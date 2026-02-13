@@ -9,1161 +9,1344 @@
 <title>Golf Pro Tempo</title>
 <link rel="icon" type="image/png" href="images/icon.png">
 <style>
-* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
-:root {
-  --green: #3bb54a;
-  --green-dark: #2d8c3a;
-  --bg-dark: rgba(0,0,0,0.5);
-  --white-75: rgba(255,255,255,0.75);
-  --white-50: rgba(255,255,255,0.5);
-}
-
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
-  background: #1a472a;
-  color: white;
-  min-height: 100dvh;
-  overflow-x: hidden;
-  -webkit-font-smoothing: antialiased;
-}
-
-.app-bg {
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: url('images/bg.jpg') center/cover no-repeat;
-  z-index: 0;
-}
-
-.app-container {
-  position: relative;
-  z-index: 1;
-  max-width: 480px;
-  margin: 0 auto;
-  padding: 16px 22px 32px;
-  min-height: 100dvh;
-  display: flex;
-  flex-direction: column;
-}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--green:#3bb54a;--green-dark:#2d8c3a;--bg-dark:rgba(0,0,0,0.5);--white-75:rgba(255,255,255,0.75);--white-50:rgba(255,255,255,0.5)}
+html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#111;color:#fff;user-select:none;-webkit-user-select:none}
+.app{max-width:480px;margin:0 auto;height:100%;display:flex;flex-direction:column;position:relative;overflow:hidden;background:url('images/bg.jpg') center/cover no-repeat}
+.app::before{content:'';position:absolute;inset:0;background:rgba(0,0,0,0.35);z-index:0}
+.app>*{position:relative;z-index:1}
+.tab-content{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding-bottom:10px}
+.tab-panel{display:none;min-height:100%;padding:0 16px}
+.tab-panel.active{display:block}
+.tab-bar{display:flex;background:rgba(20,20,20,0.95);border-top:1px solid rgba(255,255,255,0.1);padding-bottom:env(safe-area-inset-bottom,0)}
+.tab-btn{flex:1;display:flex;flex-direction:column;align-items:center;padding:8px 0 6px;background:none;border:none;color:rgba(255,255,255,0.4);font-size:10px;cursor:pointer;transition:color .2s}
+.tab-btn.active{color:var(--green)}
+.tab-btn svg{width:24px;height:24px;margin-bottom:2px}
+.tab-btn.active svg{fill:var(--green)}
+.tab-btn svg path{fill:currentColor}
 
 /* Header */
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 5px 0;
-}
+.header{display:flex;align-items:center;justify-content:center;padding:16px 0 8px;position:relative}
+.header h1{font-size:18px;font-weight:700;letter-spacing:2px}
+.header .info-btn{position:absolute;right:0;background:none;border:none;cursor:pointer;padding:8px}
+.header .info-btn svg path{fill:rgba(255,255,255,0.75)}
 
-.header h1 {
-  font-size: 20px;
-  font-weight: 800;
-  letter-spacing: 1px;
-  color: var(--white-75);
-}
+/* Golfer figure */
+.golfer-figure{text-align:center;padding:10px 0}
+.golfer-figure img{height:180px;object-fit:contain;opacity:0.9;transition:opacity .3s}
 
-.info-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 4px;
-  opacity: 0.75;
-  transition: opacity 0.2s;
-}
-.info-btn:hover { opacity: 1; }
-.info-btn svg { display: block; }
+/* Stats bar */
+.stats-bar{display:flex;background:rgba(0,0,0,0.55);border-radius:12px;padding:10px 8px;margin:8px 0;gap:4px}
+.stat-item{flex:1;text-align:center}
+.stat-label{font-size:10px;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.5px}
+.stat-value{font-size:18px;font-weight:700;margin-top:2px}
 
-/* Figure */
-.figure-container {
-  display: flex;
-  justify-content: center;
-  padding: 20px 0;
-}
+/* Param buttons */
+.param-grid{display:flex;flex-direction:column;gap:8px;margin:12px 0}
+.param-btn{display:flex;align-items:center;background:rgba(255,255,255,0.12);border:none;border-radius:14px;padding:12px 14px;cursor:pointer;color:#fff;font-size:15px;width:100%}
+.param-icon{width:36px;height:36px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;margin-right:12px;flex-shrink:0}
+.param-icon svg{width:18px;height:18px}
+.param-icon svg path{fill:#fff}
+.param-label{font-size:11px;color:rgba(255,255,255,0.5);text-transform:uppercase}
+.param-value{font-size:15px;font-weight:600;margin-top:1px}
+.param-text{flex:1;text-align:left}
+.param-arrow{margin-left:auto;opacity:0.4}
+.param-arrow svg path{fill:#fff}
 
-.figure-container img {
-  height: 250px;
-  width: auto;
-  object-fit: contain;
-}
+/* Play button */
+.play-area{text-align:center;margin:16px 0 8px}
+.play-btn{width:72px;height:72px;border-radius:50%;background:var(--green);border:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(59,181,74,0.4);transition:transform .15s,background .15s}
+.play-btn:active{transform:scale(0.92);background:var(--green-dark)}
+.play-btn svg{width:24px;height:24px}
+.play-btn svg path{fill:#fff}
+.swing-counter{font-size:16px;font-weight:700;margin-top:10px;min-height:24px;color:rgba(255,255,255,0.8)}
+.waiting-text{color:var(--green);font-size:14px;margin-top:4px;min-height:20px}
 
-/* Stats */
-.stats-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-around;
-  background: var(--bg-dark);
-  border-radius: 20px;
-  padding: 14px;
-  gap: 4px;
-}
+/* Dropdown / Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:100;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
+.modal-overlay.open{opacity:1;pointer-events:auto}
+.modal-sheet{background:#fff;border-radius:20px 20px 0 0;max-width:480px;width:100%;max-height:70vh;overflow-y:auto;padding:20px 20px env(safe-area-inset-bottom,20px);transform:translateY(100%);transition:transform .3s ease}
+.modal-overlay.open .modal-sheet{transform:translateY(0)}
+.modal-title{font-size:18px;font-weight:700;color:#000;text-align:center;margin-bottom:16px}
+.modal-option{padding:14px 16px;border-radius:12px;font-size:16px;color:#000;cursor:pointer;display:flex;align-items:center;justify-content:space-between}
+.modal-option:active{background:rgba(59,181,74,0.1)}
+.modal-option.selected{background:rgba(59,181,74,0.12);color:var(--green);font-weight:600}
+.modal-option .checkmark{color:var(--green);font-weight:700;font-size:18px}
+.modal-close{display:block;width:100%;padding:14px;border:none;border-radius:12px;background:rgba(0,0,0,0.06);font-size:16px;font-weight:600;color:#000;cursor:pointer;margin-top:12px}
 
-.stat-item {
-  flex: 1;
-  text-align: center;
-}
+/* Slider modal */
+.slider-container{padding:20px 0}
+.slider-container input[type=range]{width:100%;-webkit-appearance:none;height:6px;border-radius:3px;background:#ddd;outline:none}
+.slider-container input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;border-radius:50%;background:var(--green);cursor:pointer;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.2)}
+.slider-val{font-size:36px;font-weight:700;color:var(--green);text-align:center;margin-bottom:12px}
+.slider-label{font-size:13px;color:#888;text-align:center;margin-bottom:4px}
+.modal-apply-btn{display:block;width:100%;padding:14px;border:none;border-radius:12px;background:var(--green);font-size:16px;font-weight:700;color:#fff;cursor:pointer;margin-top:16px}
 
-.stat-value {
-  font-size: 18px;
-  font-weight: 600;
-  color: white;
-}
+/* Presets */
+.section-title{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,0.5);margin:20px 0 10px}
+.preset-card{background:rgba(255,255,255,0.1);border-radius:14px;padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;cursor:pointer}
+.preset-card:active{background:rgba(255,255,255,0.15)}
+.preset-info h3{font-size:15px;font-weight:600}
+.preset-info p{font-size:12px;color:rgba(255,255,255,0.5);margin-top:2px}
+.preset-actions{display:flex;gap:8px;align-items:center}
+.preset-apply-btn{background:var(--green);border:none;border-radius:8px;padding:6px 14px;color:#fff;font-size:13px;font-weight:600;cursor:pointer}
+.preset-delete-btn{background:rgba(255,0,0,0.15);border:none;border-radius:8px;padding:6px 10px;color:#ff3b30;font-size:13px;cursor:pointer}
+.save-preset-btn{width:100%;padding:14px;border:2px dashed rgba(255,255,255,0.2);border-radius:14px;background:none;color:rgba(255,255,255,0.6);font-size:15px;font-weight:600;cursor:pointer;margin-top:8px}
+.save-preset-btn:active{border-color:var(--green);color:var(--green)}
 
-.stat-label {
-  font-size: 11px;
-  color: var(--white-50);
-  margin-top: 2px;
-}
+/* Drills */
+.drill-card{background:rgba(255,255,255,0.1);border-radius:14px;padding:14px 16px;margin-bottom:8px;cursor:pointer}
+.drill-card:active{background:rgba(255,255,255,0.15)}
+.drill-header{display:flex;align-items:center;justify-content:space-between}
+.drill-header h3{font-size:15px;font-weight:600;flex:1}
+.drill-badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;text-transform:uppercase;letter-spacing:0.5px}
+.badge-beginner{background:rgba(59,181,74,0.2);color:#3bb54a}
+.badge-intermediate{background:rgba(255,149,0,0.2);color:#ff9500}
+.badge-advanced{background:rgba(255,59,48,0.2);color:#ff3b30}
+.drill-meta{font-size:12px;color:rgba(255,255,255,0.5);margin-top:4px}
+.drill-desc{font-size:13px;color:rgba(255,255,255,0.6);margin-top:6px;line-height:1.4}
 
-.stat-divider {
-  width: 1px;
-  height: 40px;
-  background: var(--white-50);
-  flex-shrink: 0;
-}
+/* Drill detail */
+.drill-detail{display:none;padding:0}
+.drill-detail.active{display:block}
+.drill-detail-back{background:none;border:none;color:var(--green);font-size:15px;cursor:pointer;padding:12px 0;display:flex;align-items:center;gap:4px}
+.drill-detail-title{font-size:22px;font-weight:700;margin:8px 0}
+.drill-detail-badges{display:flex;gap:8px;margin-bottom:12px}
+.drill-detail-desc{font-size:14px;line-height:1.6;color:rgba(255,255,255,0.7);margin-bottom:16px}
+.drill-stats-row{display:flex;gap:8px;margin-bottom:16px}
+.drill-stat-box{flex:1;background:rgba(255,255,255,0.08);border-radius:10px;padding:10px;text-align:center}
+.drill-stat-box .val{font-size:18px;font-weight:700;color:var(--green)}
+.drill-stat-box .lbl{font-size:10px;color:rgba(255,255,255,0.5);text-transform:uppercase;margin-top:2px}
+.drill-steps-list{margin-bottom:16px}
+.drill-step-item{background:rgba(255,255,255,0.06);border-radius:10px;padding:10px 14px;margin-bottom:6px;display:flex;align-items:center;gap:10px}
+.drill-step-num{width:28px;height:28px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+.drill-step-text{font-size:13px;color:rgba(255,255,255,0.8);line-height:1.3}
+.start-drill-btn{width:100%;padding:16px;border:none;border-radius:14px;background:var(--green);font-size:17px;font-weight:700;color:#fff;cursor:pointer;margin-bottom:20px}
 
-/* Parameter Menus */
-.params-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-  margin-top: 20px;
-}
+/* Drill player */
+.drill-player{display:none;text-align:center;padding:0 16px}
+.drill-player.active{display:block}
+.drill-player-step{font-size:13px;color:rgba(255,255,255,0.5);margin-top:16px}
+.drill-player-instruction{font-size:18px;font-weight:700;margin:12px 0;min-height:52px}
+.drill-player-settings{font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:16px}
+.drill-player-rep{font-size:48px;font-weight:700;color:var(--green);margin:20px 0}
+.drill-player-sublabel{font-size:14px;color:rgba(255,255,255,0.5);margin-bottom:20px}
+.drill-player-rest{font-size:24px;font-weight:700;color:#ff9500;margin:30px 0}
+.drill-complete-title{font-size:28px;font-weight:700;margin:30px 0 10px}
+.drill-complete-sub{font-size:15px;color:rgba(255,255,255,0.6);margin-bottom:30px}
+.drill-done-btn,.drill-stop-btn{width:100%;padding:16px;border:none;border-radius:14px;font-size:17px;font-weight:700;color:#fff;cursor:pointer;margin-bottom:10px}
+.drill-done-btn{background:var(--green)}
+.drill-stop-btn{background:rgba(255,59,48,0.8)}
+.drill-progress-bar{width:100%;height:6px;background:rgba(255,255,255,0.1);border-radius:3px;margin:16px 0 8px;overflow:hidden}
+.drill-progress-fill{height:100%;background:var(--green);border-radius:3px;transition:width .3s ease}
+.drill-player-tempo-info{display:flex;justify-content:center;gap:20px;margin:8px 0 16px}
+.drill-player-tempo-info .ti{text-align:center}
+.drill-player-tempo-info .ti .tv{font-size:20px;font-weight:700;color:var(--green)}
+.drill-player-tempo-info .ti .tl{font-size:10px;color:rgba(255,255,255,0.5);text-transform:uppercase;margin-top:2px}
 
-.param-menu {
-  position: relative;
-  cursor: pointer;
-}
+/* History */
+.history-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:16px 0}
+.history-stat-card{background:rgba(255,255,255,0.08);border-radius:12px;padding:14px;text-align:center}
+.history-stat-card .val{font-size:24px;font-weight:700;color:var(--green)}
+.history-stat-card .lbl{font-size:11px;color:rgba(255,255,255,0.5);text-transform:uppercase;margin-top:4px}
+.session-card{background:rgba(255,255,255,0.08);border-radius:12px;padding:14px;margin-bottom:8px}
+.session-date{font-size:13px;color:rgba(255,255,255,0.5)}
+.session-main{display:flex;justify-content:space-between;align-items:center;margin-top:4px}
+.session-main h3{font-size:15px;font-weight:600}
+.session-main .dur{font-size:13px;color:var(--green)}
+.session-detail{font-size:12px;color:rgba(255,255,255,0.4);margin-top:4px}
+.empty-state{text-align:center;padding:40px 20px;color:rgba(255,255,255,0.4)}
+.empty-state .icon{font-size:48px;margin-bottom:12px}
+.empty-state p{font-size:14px}
+.detailed-stats-btn{width:100%;padding:12px;border:1px solid rgba(255,255,255,0.15);border-radius:12px;background:none;color:#fff;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:16px}
+.detailed-stats-btn:active{background:rgba(255,255,255,0.05)}
 
-.param-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: var(--white-75);
-  border-radius: 26px;
-  padding: 16px 12px;
-  width: 100%;
-  border: none;
-  cursor: pointer;
-  text-align: left;
-  transition: transform 0.15s;
-  position: relative;
-}
-.param-btn:active { transform: scale(0.97); }
+/* Stats detail view */
+.stats-detail{display:none;padding:0}
+.stats-detail.active{display:block}
+.stats-section{margin-bottom:20px}
+.stats-section h3{font-size:13px;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,0.5);margin-bottom:10px}
 
-.param-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: var(--green);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-.param-icon svg { display: block; }
+/* Settings */
+.settings-group{margin:20px 0}
+.settings-group-title{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,0.4);margin-bottom:10px}
+.settings-row{display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.08);padding:14px 16px;border-radius:12px;margin-bottom:6px}
+.settings-row label{font-size:15px}
+.toggle{position:relative;width:50px;height:30px;cursor:pointer}
+.toggle input{display:none}
+.toggle-track{position:absolute;inset:0;background:rgba(255,255,255,0.2);border-radius:15px;transition:background .2s}
+.toggle input:checked+.toggle-track{background:var(--green)}
+.toggle-thumb{position:absolute;top:2px;left:2px;width:26px;height:26px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,0.3)}
+.toggle input:checked~.toggle-thumb{transform:translateX(20px)}
+.settings-btn{width:100%;padding:14px;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;margin-bottom:6px}
+.settings-btn.danger{background:rgba(255,59,48,0.15);color:#ff3b30}
+.settings-btn.danger:active{background:rgba(255,59,48,0.25)}
+.about-text{text-align:center;color:rgba(255,255,255,0.4);font-size:13px;padding:20px 0}
+.about-text .ver{font-size:15px;color:rgba(255,255,255,0.6);margin-bottom:4px}
 
-.param-text {
-  flex: 1;
-  min-width: 0;
-  padding-right: 20px;
-}
+/* Info modal */
+.info-content{color:#333;font-size:14px;line-height:1.6}
+.info-content h2{font-size:18px;margin-bottom:8px;color:#000}
+.info-content p{margin-bottom:10px}
 
-.param-label {
-  font-size: 13px;
-  color: rgba(0,0,0,0.5);
-  line-height: 1.2;
-}
+/* Prompt modal */
+.prompt-input{width:100%;padding:12px 14px;border:2px solid #ddd;border-radius:10px;font-size:16px;outline:none;margin-bottom:12px;font-family:inherit}
+.prompt-input:focus{border-color:var(--green)}
 
-.param-value {
-  font-size: 16px;
-  font-weight: 600;
-  color: black;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.param-arrow {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-/* Dropdown */
-.dropdown {
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 0;
-  right: 0;
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.25);
-  z-index: 100;
-  overflow: hidden;
-  display: none;
-  animation: dropdownIn 0.15s ease-out;
-}
-
-@keyframes dropdownIn {
-  from { opacity: 0; transform: translateY(-8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.dropdown.open { display: block; }
-
-.dropdown-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  font-size: 15px;
-  color: #333;
-  cursor: pointer;
-  transition: background 0.1s;
-  border: none;
-  background: none;
-  width: 100%;
-  text-align: left;
-}
-.dropdown-item:hover { background: #f0f0f0; }
-.dropdown-item.active { color: var(--green); font-weight: 600; }
-
-/* Play Button */
-.play-section {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-top: 20px;
-  gap: 8px;
-}
-
-.play-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  background: var(--green);
-  color: white;
-  border: none;
-  border-radius: 28px;
-  padding: 20px 40px;
-  min-width: 160px;
-  font-size: 24px;
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-  transition: transform 0.15s, background 0.15s;
-}
-.play-btn:hover { background: var(--green-dark); }
-.play-btn:active { transform: scale(0.92); }
-.play-btn svg { display: block; }
-
-.waiting-text {
-  font-size: 14px;
-  font-weight: 600;
-  color: white;
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-.waiting-text.visible { opacity: 1; }
-
-/* Info Modal */
-.modal-overlay {
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.6);
-  z-index: 200;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-}
-.modal-overlay.open { display: flex; }
-
-.modal {
-  background: white;
-  border-radius: 20px;
-  max-width: 440px;
-  width: 100%;
-  max-height: 85dvh;
-  overflow-y: auto;
-  color: #333;
-  animation: modalIn 0.2s ease-out;
-}
-
-@keyframes modalIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
-}
-
-.modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 20px 24px 12px;
-  border-bottom: 1px solid #eee;
-  position: sticky;
-  top: 0;
-  background: white;
-  border-radius: 20px 20px 0 0;
-}
-
-.modal-header h2 {
-  font-size: 18px;
-  font-weight: 700;
-}
-
-.modal-close {
-  background: #f0f0f0;
-  border: none;
-  border-radius: 50%;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  font-size: 18px;
-  color: #666;
-  transition: background 0.15s;
-}
-.modal-close:hover { background: #e0e0e0; }
-
-.modal-body {
-  padding: 20px 24px 28px;
-}
-
-.modal-body p {
-  font-size: 15px;
-  line-height: 1.5;
-  margin-bottom: 16px;
-  color: #555;
-}
-
-.modal-body h3 {
-  font-size: 17px;
-  font-weight: 700;
-  margin: 20px 0 12px;
-  color: #222;
-}
-
-.tip-item {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 12px;
-}
-
-.tip-num {
-  font-weight: 700;
-  color: var(--green);
-  flex-shrink: 0;
-}
-
-.tip-content h4 {
-  font-weight: 700;
-  font-size: 15px;
-  margin-bottom: 4px;
-}
-
-.tip-content p {
-  margin-bottom: 0;
-}
-
-/* Custom Slider Modal */
-.slider-modal {
-  background: rgba(245,245,245,0.97);
-  border-radius: 25px;
-  padding: 30px 25px;
-  max-width: 380px;
-  width: 100%;
-  text-align: center;
-  animation: modalIn 0.2s ease-out;
-  -webkit-backdrop-filter: blur(20px);
-  backdrop-filter: blur(20px);
-}
-
-.slider-modal h3 {
-  font-size: 24px;
-  font-weight: 600;
-  color: #222;
-  margin-bottom: 20px;
-}
-
-.slider-modal input[type="range"] {
-  -webkit-appearance: none;
-  width: 100%;
-  height: 6px;
-  border-radius: 3px;
-  background: #ddd;
-  outline: none;
-  margin: 8px 0 24px;
-}
-
-.slider-modal input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: var(--green);
-  cursor: pointer;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-}
-
-.slider-buttons {
-  display: flex;
-  gap: 20px;
-}
-
-.slider-buttons button {
-  flex: 1;
-  padding: 12px;
-  border-radius: 12px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: transform 0.1s;
-}
-.slider-buttons button:active { transform: scale(0.96); }
-
-.btn-cancel {
-  background: #e0e0e0;
-  border: 1px solid #ccc;
-  color: #666;
-}
-
-.btn-save {
-  background: var(--green);
-  border: none;
-  color: white;
-}
-
-/* Overlay close */
-.dropdown-backdrop {
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  z-index: 50;
-  display: none;
-}
-.dropdown-backdrop.open { display: block; }
-
-/* Responsive */
-@media (max-height: 700px) {
-  .figure-container img { height: 180px; }
-}
-
-@media (max-width: 360px) {
-  .params-grid { gap: 12px; }
-  .param-btn { padding: 12px 10px; }
-  .param-value { font-size: 14px; }
-  .stat-value { font-size: 16px; }
-}
+/* Confirm dialog */
+.confirm-text{font-size:16px;color:#333;text-align:center;margin-bottom:16px}
+.confirm-btns{display:flex;gap:8px}
+.confirm-btns button{flex:1;padding:12px;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer}
+.confirm-cancel{background:#eee;color:#333}
+.confirm-ok{background:#ff3b30;color:#fff}
 </style>
 </head>
 <body>
+<div class="app" id="app">
 
-<div class="app-bg"></div>
-<div class="dropdown-backdrop" id="dropdownBackdrop"></div>
+<!-- Tab Content Area -->
+<div class="tab-content" id="tabContent">
 
-<div class="app-container">
-  <!-- Header -->
-  <div class="header">
-    <h1>GOLF PRO TEMPO</h1>
-    <button class="info-btn" id="infoBtn" aria-label="Info">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M10.8949 9.8193H13.0769V18.5463H10.8949V9.8193ZM11.9859 4.6653C11.1492 4.6653 10.4683 5.34615 10.4683 6.18288C10.4683 7.01961 11.1492 7.70046 11.9859 7.70046C12.8226 7.70046 13.5035 7.01961 13.5035 6.18288C13.5035 5.34615 12.8226 4.6653 11.9859 4.6653ZM24 12C24 18.6165 18.6165 24 12 24C5.3835 24 0 18.6165 0 12C0 5.3835 5.3835 0 12 0C18.6165 0 24 5.3835 24 12ZM21.818 12C21.818 6.5859 17.414 2.1819 11.9999 2.1819C6.58578 2.1819 2.18178 6.5871 2.18178 12.0009C2.18178 17.4147 6.58578 21.819 11.9999 21.819C17.414 21.819 21.818 17.4138 21.818 12.0009V12Z" fill="white" fill-opacity="0.75"/></svg>
-    </button>
-  </div>
-
-  <!-- Figure -->
-  <div class="figure-container">
-    <img id="golferFigure" src="images/figure.long.png" alt="Golfer">
-  </div>
-
-  <!-- Stats -->
-  <div class="stats-bar">
-    <div class="stat-item">
-      <div class="stat-value" id="statBack">1.20s</div>
-      <div class="stat-label">Back</div>
-    </div>
-    <div class="stat-divider"></div>
-    <div class="stat-item">
-      <div class="stat-value" id="statDown">0.40s</div>
-      <div class="stat-label">Down</div>
-    </div>
-    <div class="stat-divider"></div>
-    <div class="stat-item">
-      <div class="stat-value" id="statRatio">3:1</div>
-      <div class="stat-label">Ratio</div>
-    </div>
-    <div class="stat-divider"></div>
-    <div class="stat-item">
-      <div class="stat-value" id="statTempo">1.60s</div>
-      <div class="stat-label">Tempo</div>
-    </div>
-  </div>
-
-  <!-- Parameter Menus -->
-  <div class="params-grid">
-    <!-- Game -->
-    <div class="param-menu" id="menuGame">
-      <button class="param-btn" data-menu="game">
-        <div class="param-icon">
-          <svg width="19" height="22" viewBox="0 0 19 22" fill="none"><path d="M4.52181 5.84473L0.5 9.74127L0.548456 10.066C0.596911 10.3443 0.790733 11.6431 1.71139 12.1534C1.90521 12.2462 2.14749 12.339 2.48668 12.339C2.6805 12.339 2.92278 12.2926 3.16505 12.1998C3.84343 11.9215 3.9888 11.4576 3.9888 11.1793C4.03725 10.5762 3.45579 9.9732 2.77741 9.50933L5.2971 7.0508C4.90945 6.77248 4.66718 6.35499 4.52181 5.84473Z" fill="white"/><path d="M7.6231 6.7261C8.5865 6.7261 9.3675 5.97844 9.3675 5.05615C9.3675 4.13387 8.5865 3.38621 7.6231 3.38621C6.65969 3.38621 5.8787 4.13387 5.8787 5.05615C5.8787 5.97844 6.65969 6.7261 7.6231 6.7261Z" fill="white"/><path d="M14.8428 10.0197L12.5654 7.05087C13.1468 6.35506 13.486 5.65925 13.6314 4.82428C13.9706 2.36575 11.887 0.371099 11.8385 0.278324C11.4024 -0.0927746 10.7725 -0.0927746 10.3364 0.278324C10.3364 0.278324 10.3364 0.278324 10.3364 0.324711L10.288 0.278324L8.3982 2.04104C8.93121 2.1802 9.36731 2.41214 9.75495 2.73685L10.5302 1.99465C10.9179 2.45853 11.6447 3.47905 11.4994 4.54596C11.354 5.4737 10.6272 6.26229 9.22194 7.00448C9.12503 7.05087 9.07657 7.09726 9.02812 7.14365L8.3982 7.51475L8.34974 7.56113C8.01055 7.88584 8.01055 8.44249 8.30129 8.81359C8.30129 8.81359 10.9179 11.6432 11.4509 12.9421C12.9046 16.2819 7.47754 19.8074 7.23526 19.9002C6.70225 20.1321 6.45998 20.7351 6.70225 21.2454C6.89608 21.6165 7.23526 21.8484 7.67136 21.8484C7.81673 21.8484 7.9621 21.802 8.10746 21.7557C8.20437 21.7093 10.1426 20.8743 11.7416 19.2971C13.7768 17.2561 14.4067 14.9367 13.5829 12.4782L13.9706 12.2926C14.9397 13.8234 16.4418 16.7922 16.1511 20.7815C16.1026 21.3382 16.5387 21.802 17.1202 21.8484C17.7017 21.8948 18.1862 21.4773 18.2347 20.9207C18.6708 14.9367 15.6665 10.9938 14.8428 10.0197Z" fill="white"/></svg>
-        </div>
-        <div class="param-text">
-          <div class="param-label">Game</div>
-          <div class="param-value" id="gameValue">Long</div>
-        </div>
-        <div class="param-arrow">
-          <svg width="12" height="6" viewBox="0 0 12 6" fill="none"><path d="M0.630146 0C0.577898 0 0.530874 0.0333953 0.509974 0.086271C0.489075 0.139147 0.502137 0.197588 0.538711 0.236549L5.90987 5.95826C5.936 5.98609 5.96996 6 6.00131 6C6.03266 6 6.06923 5.98609 6.09274 5.95826L11.4613 0.239332C11.4979 0.203154 11.5109 0.14193 11.49 0.086271C11.4691 0.0333953 11.4221 0 11.3699 0H0.630146Z" fill="black" fill-opacity="0.5"/></svg>
-        </div>
-      </button>
-      <div class="dropdown" id="dropdownGame"></div>
-    </div>
-
-    <!-- Tempo -->
-    <div class="param-menu" id="menuTempo">
-      <button class="param-btn" data-menu="tempo">
-        <div class="param-icon">
-          <svg width="24" height="19" viewBox="0 0 24 19" fill="none"><path d="M10.6736 3.42888C10.8388 3.06411 11.0307 2.73126 11.2495 2.42576L2.45014 6.88964C2.15102 7.05834 2.01262 7.44591 2.17781 7.75596C2.28495 7.97938 2.50371 8.12073 2.75372 8.12073C2.83407 8.12073 2.94569 8.09338 3.02604 8.06602L10.3164 4.31801C10.428 4.01251 10.5352 3.70702 10.6736 3.42888Z" fill="white"/><path d="M23.6249 4.45936C22.4239 0.971244 18.6515 -0.843487 15.2362 0.383052C13.1603 1.13539 11.6826 2.86805 11.1111 4.87428C11.0575 4.87428 11.004 4.90164 10.9727 4.929L6.32972 7.3C6.0306 7.46871 5.89221 7.85628 6.05739 8.16633C6.16454 8.38975 6.38329 8.5311 6.6333 8.5311C6.71366 8.5311 6.82527 8.50374 6.90563 8.47639L10.8968 6.43823C10.87 7.2772 10.9772 8.11162 11.2808 8.95059C11.3611 9.17401 11.4459 9.39743 11.5531 9.62085L0.726878 15.1471C0.427762 15.3158 0.289365 15.7034 0.454548 16.0134C0.561694 16.2369 0.780451 16.3782 1.03046 16.3782C1.11082 16.3782 1.22243 16.3509 1.30279 16.3235L12.1781 10.7699C12.3969 11.048 12.6156 11.3262 12.8612 11.5496L8.90122 13.5877C8.60211 13.7564 8.46371 14.144 8.62889 14.4541C8.73604 14.6775 8.9548 14.8188 9.2048 14.8188C9.28516 14.8188 9.39677 14.7915 9.47713 14.7641L13.9862 12.4478C15.6246 13.4783 17.7006 13.7883 19.6426 13.0634C23.049 11.773 24.8258 7.94747 23.6249 4.45936Z" fill="white"/></svg>
-        </div>
-        <div class="param-text">
-          <div class="param-label">Tempo</div>
-          <div class="param-value" id="tempoValue">Level 1</div>
-        </div>
-        <div class="param-arrow">
-          <svg width="12" height="6" viewBox="0 0 12 6" fill="none"><path d="M0.630146 0C0.577898 0 0.530874 0.0333953 0.509974 0.086271C0.489075 0.139147 0.502137 0.197588 0.538711 0.236549L5.90987 5.95826C5.936 5.98609 5.96996 6 6.00131 6C6.03266 6 6.06923 5.98609 6.09274 5.95826L11.4613 0.239332C11.4979 0.203154 11.5109 0.14193 11.49 0.086271C11.4691 0.0333953 11.4221 0 11.3699 0H0.630146Z" fill="black" fill-opacity="0.5"/></svg>
-        </div>
-      </button>
-      <div class="dropdown" id="dropdownTempo"></div>
-    </div>
-
-    <!-- Tone -->
-    <div class="param-menu" id="menuTone">
-      <button class="param-btn" data-menu="tone">
-        <div class="param-icon">
-          <svg width="14" height="19" viewBox="0 0 14 19" fill="none"><path d="M12.8981 1.94853C11.4809 0.916245 9.81594 0.249179 8.05937 0.00989746C7.68343 -0.0356974 7.30551 0.0776513 7.02209 0.320751C6.73887 0.563851 6.57744 0.913474 6.5792 1.27995V12.355C5.64166 11.5253 4.34582 11.188 3.10434 11.4508C1.81973 11.7224 0.759278 12.5953 0.276102 13.7785C-0.207089 14.9618 -0.0494015 16.3 0.696747 17.3477C1.44265 18.3953 2.67906 19.0148 3.99384 18.9997C5.05756 18.9529 6.0605 18.5063 6.78904 17.7548C7.51758 17.0034 7.91421 16.0067 7.89459 14.9767V2.56974C9.13517 2.77023 10.3079 3.25513 11.3153 3.98362C11.5663 4.16514 11.8764 4.25314 12.1889 4.23098C12.5014 4.20904 12.7952 4.07864 13.0164 3.86388L13.0183 3.86196C13.2879 3.60352 13.4293 3.24535 13.4064 2.87892C13.3833 2.51246 13.1981 2.17331 12.8981 1.94853Z" fill="white"/></svg>
-        </div>
-        <div class="param-text">
-          <div class="param-label">Tone</div>
-          <div class="param-value" id="toneValue">Piano</div>
-        </div>
-        <div class="param-arrow">
-          <svg width="12" height="6" viewBox="0 0 12 6" fill="none"><path d="M0.630146 0C0.577898 0 0.530874 0.0333953 0.509974 0.086271C0.489075 0.139147 0.502137 0.197588 0.538711 0.236549L5.90987 5.95826C5.936 5.98609 5.96996 6 6.00131 6C6.03266 6 6.06923 5.98609 6.09274 5.95826L11.4613 0.239332C11.4979 0.203154 11.5109 0.14193 11.49 0.086271C11.4691 0.0333953 11.4221 0 11.3699 0H0.630146Z" fill="black" fill-opacity="0.5"/></svg>
-        </div>
-      </button>
-      <div class="dropdown" id="dropdownTone"></div>
-    </div>
-
-    <!-- Interval -->
-    <div class="param-menu" id="menuInterval">
-      <button class="param-btn" data-menu="interval">
-        <div class="param-icon">
-          <svg width="17" height="16" viewBox="0 0 17 16" fill="none"><path d="M8.25119 1.07306e-05C6.5588 -0.00267818 4.90663 0.500043 3.51935 1.43981C2.13207 2.37957 1.07703 3.71077 0.49769 5.25236C-0.0816478 6.79395 -0.157159 8.47113 0.281426 10.0558C0.72001 11.6405 1.6514 13.0557 2.94894 14.1091L1.86869 14.2713C1.77131 14.286 1.67787 14.3191 1.5937 14.3689C1.50954 14.4186 1.4363 14.4839 1.37817 14.561C1.32004 14.6382 1.27815 14.7257 1.2549 14.8185C1.23165 14.9114 1.2275 15.0078 1.24267 15.1022C1.25784 15.1966 1.29204 15.2872 1.34332 15.3688C1.39461 15.4504 1.46196 15.5214 1.54155 15.5777C1.62114 15.6341 1.7114 15.6747 1.80717 15.6972C1.90295 15.7198 2.00236 15.7238 2.09974 15.7091L5.06519 15.264C5.16258 15.2495 5.25606 15.2164 5.34029 15.1669C5.42452 15.1173 5.49785 15.0521 5.55609 14.975C5.61433 14.898 5.65634 14.8106 5.67972 14.7178C5.70309 14.625 5.70738 14.5286 5.69234 14.4342L5.23323 11.5593C5.20279 11.3686 5.09547 11.1975 4.93488 11.0835C4.77429 10.9696 4.57358 10.9221 4.37691 10.9516C4.18023 10.9812 4.00371 11.0852 3.88617 11.2409C3.76863 11.3966 3.71969 11.5912 3.75013 11.7818L3.94893 13.0284C2.7316 12.0434 1.91154 10.6739 1.63301 9.16064C1.35447 7.64739 1.63531 6.08739 2.42612 4.75507C3.21693 3.42276 4.46704 2.40348 5.95653 1.87655C7.44603 1.34962 9.07949 1.3488 10.5695 1.87423C12.0596 2.39966 13.3108 3.41769 14.103 4.74921C14.8953 6.08074 15.1778 7.64046 14.9008 9.15398C14.6239 10.6675 13.8053 12.0379 12.5891 13.024C11.3728 14.0102 9.83676 14.5489 8.25119 14.5455C8.05224 14.5455 7.86143 14.6221 7.72074 14.7585C7.58005 14.8949 7.50102 15.0798 7.50102 15.2727C7.50102 15.4656 7.58005 15.6506 7.72074 15.787C7.86143 15.9234 8.05224 16 8.25119 16C10.4397 16 12.5387 15.1571 14.0862 13.6569C15.6337 12.1566 16.5031 10.1217 16.5031 8C16.5031 5.87827 15.6337 3.84344 14.0862 2.34315C12.5387 0.842865 10.4397 1.07306e-05 8.25119 1.07306e-05Z" fill="white"/><path d="M8.25119 2.9091C8.05224 2.9091 7.86143 2.98572 7.72074 3.12211C7.58005 3.2585 7.50102 3.44349 7.50102 3.63637V8.00001C7.50106 8.19287 7.58012 8.37783 7.72082 8.51419L9.97135 10.696C10.1128 10.8285 10.3023 10.9018 10.499 10.9001C10.6957 10.8985 10.8839 10.822 11.023 10.6871C11.1621 10.5523 11.2409 10.3699 11.2427 10.1792C11.2444 9.98852 11.1688 9.80481 11.0321 9.66764L9.00137 7.69892V3.63637C9.00137 3.44349 8.92234 3.2585 8.78165 3.12211C8.64096 2.98572 8.45015 2.9091 8.25119 2.9091Z" fill="white"/></svg>
-        </div>
-        <div class="param-text">
-          <div class="param-label">Interval</div>
-          <div class="param-value" id="intervalValue">0s</div>
-        </div>
-        <div class="param-arrow">
-          <svg width="12" height="6" viewBox="0 0 12 6" fill="none"><path d="M0.630146 0C0.577898 0 0.530874 0.0333953 0.509974 0.086271C0.489075 0.139147 0.502137 0.197588 0.538711 0.236549L5.90987 5.95826C5.936 5.98609 5.96996 6 6.00131 6C6.03266 6 6.06923 5.98609 6.09274 5.95826L11.4613 0.239332C11.4979 0.203154 11.5109 0.14193 11.49 0.086271C11.4691 0.0333953 11.4221 0 11.3699 0H0.630146Z" fill="black" fill-opacity="0.5"/></svg>
-        </div>
-      </button>
-      <div class="dropdown" id="dropdownInterval"></div>
-    </div>
-  </div>
-
-  <!-- Play Button -->
-  <div class="play-section">
-    <button class="play-btn" id="playBtn">
-      <svg id="playIcon" width="17" height="20" viewBox="0 0 17 20" fill="none"><path d="M15.8993 11.9661L3.7626 19.6167C3.01439 20.0891 2.05935 20.1273 1.27518 19.7175C0.489215 19.3076 0 18.5139 0 17.6524V2.3476C0 1.48614 0.489215 0.6924 1.27518 0.282546C2.05935 -0.127343 3.01439 -0.0891315 3.7626 0.38328L15.8993 8.03391C16.5863 8.46811 17 9.20798 17 9.99999C17 10.792 16.5863 11.5319 15.8993 11.9661Z" fill="white"/></svg>
-      <svg id="stopIcon" width="20" height="21" viewBox="0 0 20 21" fill="none" style="display:none"><path d="M2.30986 20.0563H17.6901C18.9859 20.0563 20 18.9859 20 17.7465V2.30986C20 1.01408 18.9296 0 17.6901 0H2.30986C1.01408 0 0 1.07042 0 2.30986V17.6901C0 19.0423 1.01408 20.0563 2.30986 20.0563Z" fill="white"/></svg>
-      <span id="playLabel">Play</span>
-    </button>
-    <div class="waiting-text" id="waitingText">Waiting...</div>
-  </div>
+<!-- HOME TAB -->
+<div class="tab-panel active" id="panelHome">
+<div class="header">
+<h1>GOLF PRO TEMPO</h1>
+<button class="info-btn" onclick="showInfoModal()"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M10.8949 9.8193H13.0769V18.5463H10.8949V9.8193ZM11.9859 4.6653C11.1492 4.6653 10.4683 5.34615 10.4683 6.18288C10.4683 7.01961 11.1492 7.70046 11.9859 7.70046C12.8226 7.70046 13.5035 7.01961 13.5035 6.18288C13.5035 5.34615 12.8226 4.6653 11.9859 4.6653ZM24 12C24 18.6165 18.6165 24 12 24C5.3835 24 0 18.6165 0 12C0 5.3835 5.3835 0 12 0C18.6165 0 24 5.3835 24 12ZM21.818 12C21.818 6.5859 17.414 2.1819 11.9999 2.1819C6.58578 2.1819 2.18178 6.5871 2.18178 12.0009C2.18178 17.4147 6.58578 21.819 11.9999 21.819C17.414 21.819 21.818 17.4138 21.818 12.0009V12Z" fill="white" fill-opacity="0.75"/></svg></button>
+</div>
+<div class="golfer-figure"><img id="golferImg" src="images/figure.long.png" alt="Golfer"></div>
+<div class="stats-bar">
+<div class="stat-item"><div class="stat-label">Back</div><div class="stat-value" id="statBack">1.10</div></div>
+<div class="stat-item"><div class="stat-label">Down</div><div class="stat-value" id="statDown">0.37</div></div>
+<div class="stat-item"><div class="stat-label">Ratio</div><div class="stat-value" id="statRatio">3.0</div></div>
+<div class="stat-item"><div class="stat-label">Tempo</div><div class="stat-value" id="statTempo">1.47</div></div>
+</div>
+<div class="param-grid">
+<button class="param-btn" onclick="openParamModal('game')">
+<div class="param-icon"><svg width="19" height="22" viewBox="0 0 19 22" fill="none"><path d="M4.52181 5.84473L0.5 9.74127L0.548456 10.066C0.596911 10.3443 0.790733 11.6431 1.71139 12.1534C1.90521 12.2462 2.14749 12.339 2.48668 12.339C2.6805 12.339 2.92278 12.2926 3.16505 12.1998C3.84343 11.9215 3.9888 11.4576 3.9888 11.1793C4.03725 10.5762 3.45579 9.9732 2.77741 9.50933L5.2971 7.0508C4.90945 6.77248 4.66718 6.35499 4.52181 5.84473Z" fill="white"/><path d="M7.6231 6.7261C8.5865 6.7261 9.3675 5.97844 9.3675 5.05615C9.3675 4.13387 8.5865 3.38621 7.6231 3.38621C6.65969 3.38621 5.8787 4.13387 5.8787 5.05615C5.8787 5.97844 6.65969 6.7261 7.6231 6.7261Z" fill="white"/><path d="M14.8428 10.0197L12.5654 7.05087C13.1468 6.35506 13.486 5.65925 13.6314 4.82428C13.9706 2.36575 11.887 0.371099 11.8385 0.278324C11.4024 -0.0927746 10.7725 -0.0927746 10.3364 0.278324C10.3364 0.278324 10.3364 0.278324 10.3364 0.324711L10.288 0.278324L8.3982 2.04104C8.93121 2.1802 9.36731 2.41214 9.75495 2.73685L10.5302 1.99465C10.9179 2.45853 11.6447 3.47905 11.4994 4.54596C11.354 5.4737 10.6272 6.26229 9.22194 7.00448C9.12503 7.05087 9.07657 7.09726 9.02812 7.14365L8.3982 7.51475L8.34974 7.56113C8.01055 7.88584 8.01055 8.44249 8.30129 8.81359C8.30129 8.81359 10.9179 11.6432 11.4509 12.9421C12.9046 16.2819 7.47754 19.8074 7.23526 19.9002C6.70225 20.1321 6.45998 20.7351 6.70225 21.2454C6.89608 21.6165 7.23526 21.8484 7.67136 21.8484C7.81673 21.8484 7.9621 21.802 8.10746 21.7557C8.20437 21.7093 10.1426 20.8743 11.7416 19.2971C13.7768 17.2561 14.4067 14.9367 13.5829 12.4782L13.9706 12.2926C14.9397 13.8234 16.4418 16.7922 16.1511 20.7815C16.1026 21.3382 16.5387 21.802 17.1202 21.8484C17.7017 21.8948 18.1862 21.4773 18.2347 20.9207C18.6708 14.9367 15.6665 10.9938 14.8428 10.0197Z" fill="white"/></svg></div>
+<div class="param-text"><div class="param-label">Game</div><div class="param-value" id="paramGame">Long</div></div>
+<div class="param-arrow"><svg width="12" height="6" viewBox="0 0 12 6" fill="none"><path d="M0.630146 0C0.577898 0 0.530874 0.0333953 0.509974 0.086271C0.489075 0.139147 0.502137 0.197588 0.538711 0.236549L5.90987 5.95826C5.936 5.98609 5.96996 6 6.00131 6C6.03266 6 6.06923 5.98609 6.09274 5.95826L11.4613 0.239332C11.4979 0.203154 11.5109 0.14193 11.49 0.086271C11.4691 0.0333953 11.4221 0 11.3699 0H0.630146Z" fill="white" fill-opacity="0.5"/></svg></div>
+</button>
+<button class="param-btn" onclick="openParamModal('speed')">
+<div class="param-icon"><svg width="24" height="19" viewBox="0 0 24 19" fill="none"><path d="M10.6736 3.42888C10.8388 3.06411 11.0307 2.73126 11.2495 2.42576L2.45014 6.88964C2.15102 7.05834 2.01262 7.44591 2.17781 7.75596C2.28495 7.97938 2.50371 8.12073 2.75372 8.12073C2.83407 8.12073 2.94569 8.09338 3.02604 8.06602L10.3164 4.31801C10.428 4.01251 10.5352 3.70702 10.6736 3.42888Z" fill="white"/><path d="M23.6249 4.45936C22.4239 0.971244 18.6515 -0.843487 15.2362 0.383052C13.1603 1.13539 11.6826 2.86805 11.1111 4.87428C11.0575 4.87428 11.004 4.90164 10.9727 4.929L6.32972 7.3C6.0306 7.46871 5.89221 7.85628 6.05739 8.16633C6.16454 8.38975 6.38329 8.5311 6.6333 8.5311C6.71366 8.5311 6.82527 8.50374 6.90563 8.47639L10.8968 6.43823C10.87 7.2772 10.9772 8.11162 11.2808 8.95059C11.3611 9.17401 11.4459 9.39743 11.5531 9.62085L0.726878 15.1471C0.427762 15.3158 0.289365 15.7034 0.454548 16.0134C0.561694 16.2369 0.780451 16.3782 1.03046 16.3782C1.11082 16.3782 1.22243 16.3509 1.30279 16.3235L12.1781 10.7699C12.3969 11.048 12.6156 11.3262 12.8612 11.5496L8.90122 13.5877C8.60211 13.7564 8.46371 14.144 8.62889 14.4541C8.73604 14.6775 8.9548 14.8188 9.2048 14.8188C9.28516 14.8188 9.39677 14.7915 9.47713 14.7641L13.9862 12.4478C15.6246 13.4783 17.7006 13.7883 19.6426 13.0634C23.049 11.773 24.8258 7.94747 23.6249 4.45936Z" fill="white"/></svg></div>
+<div class="param-text"><div class="param-label">Tempo</div><div class="param-value" id="paramSpeed">Level 2</div></div>
+<div class="param-arrow"><svg width="12" height="6" viewBox="0 0 12 6" fill="none"><path d="M0.630146 0C0.577898 0 0.530874 0.0333953 0.509974 0.086271C0.489075 0.139147 0.502137 0.197588 0.538711 0.236549L5.90987 5.95826C5.936 5.98609 5.96996 6 6.00131 6C6.03266 6 6.06923 5.98609 6.09274 5.95826L11.4613 0.239332C11.4979 0.203154 11.5109 0.14193 11.49 0.086271C11.4691 0.0333953 11.4221 0 11.3699 0H0.630146Z" fill="white" fill-opacity="0.5"/></svg></div>
+</button>
+<button class="param-btn" onclick="openParamModal('tone')">
+<div class="param-icon"><svg width="14" height="19" viewBox="0 0 14 19" fill="none"><path d="M12.8981 1.94853C11.4809 0.916245 9.81594 0.249179 8.05937 0.00989746C7.68343 -0.0356974 7.30551 0.0776513 7.02209 0.320751C6.73887 0.563851 6.57744 0.913474 6.5792 1.27995V12.355C5.64166 11.5253 4.34582 11.188 3.10434 11.4508C1.81973 11.7224 0.759278 12.5953 0.276102 13.7785C-0.207089 14.9618 -0.0494015 16.3 0.696747 17.3477C1.44265 18.3953 2.67906 19.0148 3.99384 18.9997C5.05756 18.9529 6.0605 18.5063 6.78904 17.7548C7.51758 17.0034 7.91421 16.0067 7.89459 14.9767V2.56974C9.13517 2.77023 10.3079 3.25513 11.3153 3.98362C11.5663 4.16514 11.8764 4.25314 12.1889 4.23098C12.5014 4.20904 12.7952 4.07864 13.0164 3.86388L13.0183 3.86196C13.2879 3.60352 13.4293 3.24535 13.4064 2.87892C13.3833 2.51246 13.1981 2.17331 12.8981 1.94853Z" fill="white"/></svg></div>
+<div class="param-text"><div class="param-label">Tone</div><div class="param-value" id="paramTone">Piano</div></div>
+<div class="param-arrow"><svg width="12" height="6" viewBox="0 0 12 6" fill="none"><path d="M0.630146 0C0.577898 0 0.530874 0.0333953 0.509974 0.086271C0.489075 0.139147 0.502137 0.197588 0.538711 0.236549L5.90987 5.95826C5.936 5.98609 5.96996 6 6.00131 6C6.03266 6 6.06923 5.98609 6.09274 5.95826L11.4613 0.239332C11.4979 0.203154 11.5109 0.14193 11.49 0.086271C11.4691 0.0333953 11.4221 0 11.3699 0H0.630146Z" fill="white" fill-opacity="0.5"/></svg></div>
+</button>
+<button class="param-btn" onclick="openParamModal('interval')">
+<div class="param-icon"><svg width="17" height="16" viewBox="0 0 17 16" fill="none"><path d="M8.25119 1.07306e-05C6.5588 -0.00267818 4.90663 0.500043 3.51935 1.43981C2.13207 2.37957 1.07703 3.71077 0.49769 5.25236C-0.0816478 6.79395 -0.157159 8.47113 0.281426 10.0558C0.72001 11.6405 1.6514 13.0557 2.94894 14.1091L1.86869 14.2713C1.77131 14.286 1.67787 14.3191 1.5937 14.3689C1.50954 14.4186 1.4363 14.4839 1.37817 14.561C1.32004 14.6382 1.27815 14.7257 1.2549 14.8185C1.23165 14.9114 1.2275 15.0078 1.24267 15.1022C1.25784 15.1966 1.29204 15.2872 1.34332 15.3688C1.39461 15.4504 1.46196 15.5214 1.54155 15.5777C1.62114 15.6341 1.7114 15.6747 1.80717 15.6972C1.90295 15.7198 2.00236 15.7238 2.09974 15.7091L5.06519 15.264C5.16258 15.2495 5.25606 15.2164 5.34029 15.1669C5.42452 15.1173 5.49785 15.0521 5.55609 14.975C5.61433 14.898 5.65634 14.8106 5.67972 14.7178C5.70309 14.625 5.70738 14.5286 5.69234 14.4342L5.23323 11.5593C5.20279 11.3686 5.09547 11.1975 4.93488 11.0835C4.77429 10.9696 4.57358 10.9221 4.37691 10.9516C4.18023 10.9812 4.00371 11.0852 3.88617 11.2409C3.76863 11.3966 3.71969 11.5912 3.75013 11.7818L3.94893 13.0284C2.7316 12.0434 1.91154 10.6739 1.63301 9.16064C1.35447 7.64739 1.63531 6.08739 2.42612 4.75507C3.21693 3.42276 4.46704 2.40348 5.95653 1.87655C7.44603 1.34962 9.07949 1.3488 10.5695 1.87423C12.0596 2.39966 13.3108 3.41769 14.103 4.74921C14.8953 6.08074 15.1778 7.64046 14.9008 9.15398C14.6239 10.6675 13.8053 12.0379 12.5891 13.024C11.3728 14.0102 9.83676 14.5489 8.25119 14.5455C8.05224 14.5455 7.86143 14.6221 7.72074 14.7585C7.58005 14.8949 7.50102 15.0798 7.50102 15.2727C7.50102 15.4656 7.58005 15.6506 7.72074 15.787C7.86143 15.9234 8.05224 16 8.25119 16C10.4397 16 12.5387 15.1571 14.0862 13.6569C15.6337 12.1566 16.5031 10.1217 16.5031 8C16.5031 5.87827 15.6337 3.84344 14.0862 2.34315C12.5387 0.842865 10.4397 1.07306e-05 8.25119 1.07306e-05Z" fill="white"/><path d="M8.25119 2.9091C8.05224 2.9091 7.86143 2.98572 7.72074 3.12211C7.58005 3.2585 7.50102 3.44349 7.50102 3.63637V8.00001C7.50106 8.19287 7.58012 8.37783 7.72082 8.51419L9.97135 10.696C10.1128 10.8285 10.3023 10.9018 10.499 10.9001C10.6957 10.8985 10.8839 10.822 11.023 10.6871C11.1621 10.5523 11.2409 10.3699 11.2427 10.1792C11.2444 9.98852 11.1688 9.80481 11.0321 9.66764L9.00137 7.69892V3.63637C9.00137 3.44349 8.92234 3.2585 8.78165 3.12211C8.64096 2.98572 8.45015 2.9091 8.25119 2.9091Z" fill="white"/></svg></div>
+<div class="param-text"><div class="param-label">Interval</div><div class="param-value" id="paramInterval">0s</div></div>
+<div class="param-arrow"><svg width="12" height="6" viewBox="0 0 12 6" fill="none"><path d="M0.630146 0C0.577898 0 0.530874 0.0333953 0.509974 0.086271C0.489075 0.139147 0.502137 0.197588 0.538711 0.236549L5.90987 5.95826C5.936 5.98609 5.96996 6 6.00131 6C6.03266 6 6.06923 5.98609 6.09274 5.95826L11.4613 0.239332C11.4979 0.203154 11.5109 0.14193 11.49 0.086271C11.4691 0.0333953 11.4221 0 11.3699 0H0.630146Z" fill="white" fill-opacity="0.5"/></svg></div>
+</button>
+</div>
+<div class="play-area">
+<button class="play-btn" id="playBtn" onclick="togglePlay()">
+<svg id="playIcon" width="17" height="20" viewBox="0 0 17 20" fill="none"><path d="M15.8993 11.9661L3.7626 19.6167C3.01439 20.0891 2.05935 20.1273 1.27518 19.7175C0.489215 19.3076 0 18.5139 0 17.6524V2.3476C0 1.48614 0.489215 0.6924 1.27518 0.282546C2.05935 -0.127343 3.01439 -0.0891315 3.7626 0.38328L15.8993 8.03391C16.5863 8.46811 17 9.20798 17 9.99999C17 10.792 16.5863 11.5319 15.8993 11.9661Z" fill="white"/></svg>
+<svg id="stopIcon" style="display:none" width="20" height="21" viewBox="0 0 20 21" fill="none"><path d="M2.30986 20.0563H17.6901C18.9859 20.0563 20 18.9859 20 17.7465V2.30986C20 1.01408 18.9296 0 17.6901 0H2.30986C1.01408 0 0 1.07042 0 2.30986V17.6901C0 19.0423 1.01408 20.0563 2.30986 20.0563Z" fill="white"/></svg>
+</button>
+<div class="swing-counter" id="swingCounter"></div>
+<div class="waiting-text" id="waitingText"></div>
+</div>
 </div>
 
-<!-- Info Modal -->
-<div class="modal-overlay" id="infoModal">
-  <div class="modal">
-    <div class="modal-header">
-      <h2>How to Use</h2>
-      <button class="modal-close" id="infoClose">&times;</button>
-    </div>
-    <div class="modal-body">
-      <p>Golf Pro Tempo helps you perfect your golf swing rhythm with customizable audio cues.</p>
-
-      <h3>Main Features</h3>
-
-      <div class="tip-item">
-        <span class="tip-num">1.</span>
-        <div class="tip-content">
-          <h4>Game Types</h4>
-          <p>Choose between Long (3:1), Short (2:1), or set your own Custom ratio to match your natural swing.</p>
-        </div>
-      </div>
-
-      <div class="tip-item">
-        <span class="tip-num">2.</span>
-        <div class="tip-content">
-          <h4>Tempo Control</h4>
-          <p>Select from 8 preset speeds or create a Custom tempo to find your ideal rhythm.</p>
-        </div>
-      </div>
-
-      <div class="tip-item">
-        <span class="tip-num">3.</span>
-        <div class="tip-content">
-          <h4>Sound Options</h4>
-          <p>Choose from multiple sound types (Piano, Guitar, Drum, Beep, Voice, etc.) to find what works best for your training.</p>
-        </div>
-      </div>
-
-      <div class="tip-item">
-        <span class="tip-num">4.</span>
-        <div class="tip-content">
-          <h4>Loop Settings</h4>
-          <p>Set the pause between swing cycles. A 1-second base pause plus your selected interval value.</p>
-        </div>
-      </div>
-
-      <h3>Training Tips</h3>
-
-      <div class="tip-item">
-        <span class="tip-num">1.</span>
-        <div class="tip-content">
-          <h4>Listen &amp; Feel</h4>
-          <p>Focus on matching your movement to the audio cues until it becomes automatic.</p>
-        </div>
-      </div>
-
-      <div class="tip-item">
-        <span class="tip-num">2.</span>
-        <div class="tip-content">
-          <h4>Progressive Training</h4>
-          <p>Start with slower tempos and gradually increase speed as your muscle memory develops.</p>
-        </div>
-      </div>
-    </div>
-  </div>
+<!-- PRESETS TAB -->
+<div class="tab-panel" id="panelPresets">
+<div class="header"><h1>PRESETS</h1></div>
+<div class="section-title">Built-in Presets</div>
+<div id="builtinPresets"></div>
+<div class="section-title">Your Presets</div>
+<div id="userPresets"></div>
+<button class="save-preset-btn" onclick="saveCurrentPreset()">+ Save Current Settings</button>
 </div>
 
-<!-- Custom Ratio Modal -->
-<div class="modal-overlay" id="ratioModal">
-  <div class="slider-modal">
-    <h3 id="ratioDisplay">Ratio: 3.0:1</h3>
-    <input type="range" id="ratioSlider" min="10" max="50" value="30" step="1">
-    <div class="slider-buttons">
-      <button class="btn-cancel" id="ratioCancelBtn">Cancel</button>
-      <button class="btn-save" id="ratioSaveBtn">Save</button>
-    </div>
-  </div>
+<!-- DRILLS TAB -->
+<div class="tab-panel" id="panelDrills">
+<div class="header"><h1>DRILLS</h1></div>
+<div id="drillList"></div>
+<div class="drill-detail" id="drillDetail"></div>
+<div class="drill-player" id="drillPlayer"></div>
 </div>
 
-<!-- Custom Tempo Modal -->
-<div class="modal-overlay" id="tempoModal">
-  <div class="slider-modal">
-    <h3 id="tempoDisplay">Tempo: 1.47 sec</h3>
-    <input type="range" id="tempoSlider" min="50" max="300" value="147" step="1">
-    <div class="slider-buttons">
-      <button class="btn-cancel" id="tempoCancelBtn">Cancel</button>
-      <button class="btn-save" id="tempoSaveBtn">Save</button>
-    </div>
-  </div>
+<!-- HISTORY TAB -->
+<div class="tab-panel" id="panelHistory">
+<div class="header"><h1>HISTORY</h1></div>
+<div id="historyQuickStats"></div>
+<button class="detailed-stats-btn" onclick="showDetailedStats()">Detailed Stats</button>
+<div class="section-title">Recent Sessions</div>
+<div id="sessionList"></div>
+<div class="stats-detail" id="statsDetail"></div>
+</div>
+
+<!-- SETTINGS TAB -->
+<div class="tab-panel" id="panelSettings">
+<div class="header"><h1>SETTINGS</h1></div>
+<div class="settings-group">
+<div class="settings-group-title">Sound</div>
+<div class="settings-row"><label>Sound Effects</label><label class="toggle"><input type="checkbox" id="settingSound" checked onchange="saveSetting('sound',this.checked)"><span class="toggle-track"></span><span class="toggle-thumb"></span></label></div>
+</div>
+<div class="settings-group">
+<div class="settings-group-title">Haptic</div>
+<div class="settings-row"><label>Vibration</label><label class="toggle"><input type="checkbox" id="settingHaptic" checked onchange="saveSetting('haptic',this.checked)"><span class="toggle-track"></span><span class="toggle-thumb"></span></label></div>
+</div>
+<div class="settings-group">
+<div class="settings-group-title">Data</div>
+<button class="settings-btn danger" onclick="confirmAction('Clear all practice history?',clearHistory)">Clear History</button>
+<button class="settings-btn danger" onclick="confirmAction('Clear all saved presets?',clearPresets)">Clear Presets</button>
+</div>
+<div class="about-text">
+<div class="ver">Golf Pro Tempo v2.1</div>
+<div>Made for golfers</div>
+</div>
+</div>
+</div>
+
+<!-- TAB BAR -->
+<div class="tab-bar">
+<button class="tab-btn active" onclick="switchTab('Home',this)">
+<svg viewBox="0 0 24 24"><path d="M12 2L3 7v2h2v11h6v-6h2v6h6V9h2V7L12 2zm0 2.3L19 9v1H5V9l7-4.7zM7 11h10v7h-2v-6H9v6H7v-7z"/><circle cx="12" cy="7" r="1.5"/></svg>
+<span>Home</span>
+</button>
+<button class="tab-btn" onclick="switchTab('Presets',this)">
+<svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2zm0 15l-5-2.18L7 18V5h10v13z"/></svg>
+<span>Presets</span>
+</button>
+<button class="tab-btn" onclick="switchTab('Drills',this)">
+<svg viewBox="0 0 24 24"><path d="M15.05 2.25c-.65-.15-1.3.25-1.45.9l-.35 1.5c-.15.65.25 1.3.9 1.45.65.15 1.3-.25 1.45-.9l.35-1.5c.15-.65-.25-1.3-.9-1.45zM9.5 8.5L5 12l4.5 3.5V13H15v-2H9.5V8.5zM19 12c0-3.87-3.13-7-7-7-1.08 0-2.1.25-3.02.69l1.47 1.47C11.27 6.74 12.12 6.5 13 6.5c3.04 0 5.5 2.46 5.5 5.5s-2.46 5.5-5.5 5.5c-.88 0-1.73-.24-2.55-.66l-1.47 1.47C9.9 19.25 10.92 19.5 12 19.5c3.87 0 7-3.13 7-7z"/></svg>
+<span>Drills</span>
+</button>
+<button class="tab-btn" onclick="switchTab('History',this)">
+<svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
+<span>History</span>
+</button>
+<button class="tab-btn" onclick="switchTab('Settings',this)">
+<svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+<span>Settings</span>
+</button>
+</div>
+</div>
+
+<!-- MODAL OVERLAY -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalBg(event)">
+<div class="modal-sheet" id="modalSheet"></div>
 </div>
 
 <script>
-// ===================== STATE =====================
-const state = {
-  selectedGame: 'Long',
-  selectedSpeed: 'Level 1',
-  selectedTone: 'Piano',
-  selectedLoopDelay: '0s',
-  customRatio: 3.0,
-  customTempo: 1.47,
-  backTime: '1.20s',
-  downTime: '0.40s',
-  ratio: '3:1',
-  tempo: '1.60s',
-  isPlaying: false,
-  isWaiting: false
+// ==================== STATE ====================
+const S = {
+  game: 'Long', speed: 'Level 2', tone: 'Piano', interval: '0s',
+  customRatio: 3.0, customTempo: 1.47,
+  playing: false, swingCount: 0
 };
 
-const gameOptions = ['Long', 'Short', 'Custom'];
-const speedOptions = ['Level 1', 'Level 2', 'Level 3', 'Level 4', 'Level 5', 'Level 6', 'Level 7', 'Level 8', 'Custom'];
-const toneOptions = ['Piano', 'Guitar', 'Drum', 'Beep', '8-Bit', 'Dripper', 'Synthesizer', 'Voice'];
-const loopDelayOptions = ['0s', '3s', '5s', '10s'];
+// ==================== TEMPO TABLES ====================
+const LONG_TABLE = [
+  {level:1,back:1.20,down:0.40,tempo:1.60},
+  {level:2,back:1.10,down:0.37,tempo:1.47},
+  {level:3,back:1.00,down:0.33,tempo:1.33},
+  {level:4,back:0.90,down:0.30,tempo:1.20},
+  {level:5,back:0.80,down:0.27,tempo:1.07},
+  {level:6,back:0.70,down:0.23,tempo:0.93},
+  {level:7,back:0.60,down:0.20,tempo:0.80},
+  {level:8,back:0.50,down:0.17,tempo:0.67}
+];
+const SHORT_TABLE = [
+  {level:1,back:0.80,down:0.40,tempo:1.20},
+  {level:2,back:0.73,down:0.37,tempo:1.10},
+  {level:3,back:0.67,down:0.33,tempo:1.00},
+  {level:4,back:0.60,down:0.30,tempo:0.90},
+  {level:5,back:0.53,down:0.27,tempo:0.80},
+  {level:6,back:0.47,down:0.23,tempo:0.70},
+  {level:7,back:0.40,down:0.20,tempo:0.60},
+  {level:8,back:0.33,down:0.17,tempo:0.50}
+];
 
-// ===================== AUDIO ENGINE =====================
-class AudioEngine {
-  constructor() {
-    this.ctx = null;
-    this.buffers = {};
-    this.currentTone = 'Piano';
-    this.isPlaying = false;
-    this.isStopped = true;
-    this.timers = [];
+function getTempoValues(game, speed, customRatio, customTempo) {
+  let table = game === 'Short' ? SHORT_TABLE : LONG_TABLE;
+  let ratio = game === 'Long' ? 3.0 : game === 'Short' ? 2.0 : customRatio;
+  if (game === 'Custom') {
+    let totalTempo;
+    if (speed === 'Custom') {
+      totalTempo = customTempo;
+    } else {
+      let lvl = parseInt(speed.replace('Level ', ''));
+      totalTempo = LONG_TABLE[(lvl - 1)] ? LONG_TABLE[(lvl - 1)].tempo : 1.47;
+    }
+    let down = totalTempo / (ratio + 1);
+    let back = down * ratio;
+    return { back: +back.toFixed(2), down: +down.toFixed(2), ratio: +ratio.toFixed(1), tempo: +totalTempo.toFixed(2) };
   }
-
-  async init() {
-    if (this.ctx) return;
-    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-    await this.loadTone(this.currentTone);
+  if (speed === 'Custom') {
+    let totalTempo = customTempo;
+    let down = totalTempo / (ratio + 1);
+    let back = down * ratio;
+    return { back: +back.toFixed(2), down: +down.toFixed(2), ratio: +ratio.toFixed(1), tempo: +totalTempo.toFixed(2) };
   }
+  let lvl = parseInt(speed.replace('Level ', ''));
+  let entry = table[lvl - 1] || table[0];
+  return { back: entry.back, down: entry.down, ratio: ratio, tempo: entry.tempo };
+}
 
-  async loadTone(tone) {
-    const files = [tone + '1', tone + '2', tone + '3'];
-    const promises = files.map(async (name) => {
-      if (this.buffers[name]) return;
-      try {
-        const resp = await fetch('audio/' + name + '.mp3');
-        const arrayBuf = await resp.arrayBuffer();
-        this.buffers[name] = await this.ctx.decodeAudioData(arrayBuf);
-      } catch (e) {
-        console.warn('Failed to load ' + name + '.mp3:', e);
-      }
+function updateDisplay() {
+  let v = getTempoValues(S.game, S.speed, S.customRatio, S.customTempo);
+  document.getElementById('statBack').textContent = v.back.toFixed(2);
+  document.getElementById('statDown').textContent = v.down.toFixed(2);
+  document.getElementById('statRatio').textContent = v.ratio.toFixed(1);
+  document.getElementById('statTempo').textContent = v.tempo.toFixed(2);
+  document.getElementById('paramGame').textContent = S.game;
+  document.getElementById('paramSpeed').textContent = S.speed;
+  document.getElementById('paramTone').textContent = S.tone;
+  document.getElementById('paramInterval').textContent = S.interval;
+  let img = document.getElementById('golferImg');
+  img.src = S.game === 'Short' ? 'images/figure.short.png' : 'images/figure.long.png';
+}
+
+// ==================== TABS ====================
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  let id = 'panel' + name;
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+  // Reset drill views
+  if (name === 'Drills') {
+    document.getElementById('drillList').style.display = '';
+    document.getElementById('drillDetail').classList.remove('active');
+    document.getElementById('drillPlayer').classList.remove('active');
+  }
+  if (name === 'History') { renderHistory(); }
+  if (name === 'Presets') { renderPresets(); }
+  if (name === 'Settings') { loadSettings(); }
+  // Reset stats detail
+  if (name === 'History') {
+    document.getElementById('statsDetail').classList.remove('active');
+    document.getElementById('historyQuickStats').style.display = '';
+    document.querySelector('#panelHistory .detailed-stats-btn').style.display = '';
+    document.querySelector('#panelHistory .section-title').style.display = '';
+    document.getElementById('sessionList').style.display = '';
+  }
+}
+
+// ==================== MODALS ====================
+function openModal(html) {
+  document.getElementById('modalSheet').innerHTML = html;
+  document.getElementById('modalOverlay').classList.add('open');
+}
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+}
+function closeModalBg(e) {
+  if (e.target === document.getElementById('modalOverlay')) closeModal();
+}
+
+function openParamModal(type) {
+  let html = '';
+  if (type === 'game') {
+    html = `<div class="modal-title">Game Type</div>`;
+    ['Long','Short','Custom'].forEach(g => {
+      let sel = S.game === g ? ' selected' : '';
+      html += `<div class="modal-option${sel}" onclick="selectGame('${g}')">${g}${sel ? '<span class="checkmark">&#10003;</span>' : ''}</div>`;
     });
-    await Promise.all(promises);
-  }
-
-  playSound(name) {
-    var buf = this.buffers[name];
-    if (!buf || !this.ctx) return;
-    var source = this.ctx.createBufferSource();
-    source.buffer = buf;
-    source.connect(this.ctx.destination);
-    source.start(0);
-  }
-
-  clearTimers() {
-    this.timers.forEach(function(t) { clearTimeout(t); });
-    this.timers = [];
-  }
-
-  async startPlayback(backTime, downTime, loopDelay, tone) {
-    await this.init();
-    this.stop();
-
-    if (tone !== this.currentTone) {
-      this.currentTone = tone;
-      await this.loadTone(tone);
+    html += `<button class="modal-close" onclick="closeModal()">Cancel</button>`;
+  } else if (type === 'speed') {
+    html = `<div class="modal-title">Tempo Speed</div>`;
+    for (let i = 1; i <= 8; i++) {
+      let v = 'Level ' + i;
+      let sel = S.speed === v ? ' selected' : '';
+      html += `<div class="modal-option${sel}" onclick="selectSpeed('${v}')">${v}${sel ? '<span class="checkmark">&#10003;</span>' : ''}</div>`;
     }
-
-    if (this.ctx.state === 'suspended') {
-      await this.ctx.resume();
-    }
-
-    this.isStopped = false;
-    this.isPlaying = true;
-    this.playBackswing(backTime, downTime, loopDelay, tone);
+    let sel = S.speed === 'Custom' ? ' selected' : '';
+    html += `<div class="modal-option${sel}" onclick="openCustomTempoSlider()">Custom${sel ? '<span class="checkmark">&#10003;</span>' : ''}</div>`;
+    html += `<button class="modal-close" onclick="closeModal()">Cancel</button>`;
+  } else if (type === 'tone') {
+    html = `<div class="modal-title">Tone</div>`;
+    ['Piano','Guitar','Drum','Beep','8-Bit','Dripper','Synthesizer','Voice'].forEach(t => {
+      let sel = S.tone === t ? ' selected' : '';
+      html += `<div class="modal-option${sel}" onclick="selectTone('${t}')">${t}${sel ? '<span class="checkmark">&#10003;</span>' : ''}</div>`;
+    });
+    html += `<button class="modal-close" onclick="closeModal()">Cancel</button>`;
+  } else if (type === 'interval') {
+    html = `<div class="modal-title">Loop Interval</div>`;
+    ['0s','3s','5s','10s'].forEach(v => {
+      let sel = S.interval === v ? ' selected' : '';
+      html += `<div class="modal-option${sel}" onclick="selectInterval('${v}')">${v}${sel ? '<span class="checkmark">&#10003;</span>' : ''}</div>`;
+    });
+    html += `<button class="modal-close" onclick="closeModal()">Cancel</button>`;
   }
-
-  playBackswing(backTime, downTime, loopDelay, tone) {
-    if (this.isStopped) return;
-
-    this.playSound(tone + '1');
-    state.isWaiting = false;
-    updateWaiting();
-
-    var self = this;
-    var t = setTimeout(function() {
-      if (self.isStopped) return;
-      self.playDownswing(backTime, downTime, loopDelay, tone);
-    }, backTime * 1000);
-    this.timers.push(t);
-  }
-
-  playDownswing(backTime, downTime, loopDelay, tone) {
-    if (this.isStopped) return;
-
-    this.playSound(tone + '2');
-
-    var self = this;
-    var t = setTimeout(function() {
-      if (self.isStopped) return;
-      self.playImpact(backTime, downTime, loopDelay, tone);
-    }, downTime * 1000);
-    this.timers.push(t);
-  }
-
-  playImpact(backTime, downTime, loopDelay, tone) {
-    if (this.isStopped) return;
-
-    this.playSound(tone + '3');
-
-    var basePause = 1.0;
-    var totalDelay = basePause + loopDelay;
-
-    state.isWaiting = loopDelay > 0;
-    updateWaiting();
-
-    var self = this;
-    var t = setTimeout(function() {
-      if (self.isStopped) return;
-      self.playBackswing(backTime, downTime, loopDelay, tone);
-    }, totalDelay * 1000);
-    this.timers.push(t);
-  }
-
-  stop() {
-    this.isStopped = true;
-    this.isPlaying = false;
-    this.clearTimers();
-    state.isWaiting = false;
-    updateWaiting();
-  }
+  openModal(html);
 }
 
-var audio = new AudioEngine();
+function selectGame(g) {
+  S.game = g;
+  if (g === 'Custom') {
+    closeModal();
+    setTimeout(() => openCustomRatioSlider(), 300);
+    return;
+  }
+  updateDisplay(); closeModal();
+}
+function selectSpeed(v) { S.speed = v; updateDisplay(); closeModal(); }
+function selectTone(t) { S.tone = t; updateDisplay(); closeModal(); }
+function selectInterval(v) { S.interval = v; updateDisplay(); closeModal(); }
 
-// ===================== DOM REFS =====================
-var $statBack = document.getElementById('statBack');
-var $statDown = document.getElementById('statDown');
-var $statRatio = document.getElementById('statRatio');
-var $statTempo = document.getElementById('statTempo');
-var $golferFigure = document.getElementById('golferFigure');
-var $gameValue = document.getElementById('gameValue');
-var $tempoValue = document.getElementById('tempoValue');
-var $toneValue = document.getElementById('toneValue');
-var $intervalValue = document.getElementById('intervalValue');
-var $playBtn = document.getElementById('playBtn');
-var $playIcon = document.getElementById('playIcon');
-var $stopIcon = document.getElementById('stopIcon');
-var $playLabel = document.getElementById('playLabel');
-var $waitingText = document.getElementById('waitingText');
-var $dropdownBackdrop = document.getElementById('dropdownBackdrop');
-
-// ===================== UI UPDATE =====================
-function updateStats() {
-  $statBack.textContent = state.backTime;
-  $statDown.textContent = state.downTime;
-  $statRatio.textContent = state.ratio;
-  $statTempo.textContent = state.tempo;
+function openCustomRatioSlider() {
+  let html = `<div class="modal-title">Custom Ratio</div>
+    <div class="slider-container">
+      <div class="slider-val" id="sliderRatioVal">${S.customRatio.toFixed(1)}</div>
+      <input type="range" min="1.0" max="5.0" step="0.1" value="${S.customRatio}" oninput="document.getElementById('sliderRatioVal').textContent=parseFloat(this.value).toFixed(1)">
+    </div>
+    <button class="modal-apply-btn" onclick="applyCustomRatio()">Apply</button>
+    <button class="modal-close" onclick="closeModal()">Cancel</button>`;
+  openModal(html);
+}
+function applyCustomRatio() {
+  S.customRatio = parseFloat(document.querySelector('.slider-container input').value);
+  updateDisplay(); closeModal();
+}
+function openCustomTempoSlider() {
+  let html = `<div class="modal-title">Custom Tempo</div>
+    <div class="slider-container">
+      <div class="slider-val" id="sliderTempoVal">${S.customTempo.toFixed(2)}</div>
+      <input type="range" min="0.50" max="3.00" step="0.01" value="${S.customTempo}" oninput="document.getElementById('sliderTempoVal').textContent=parseFloat(this.value).toFixed(2)">
+    </div>
+    <button class="modal-apply-btn" onclick="applyCustomTempo()">Apply</button>
+    <button class="modal-close" onclick="closeModal()">Cancel</button>`;
+  openModal(html);
+}
+function applyCustomTempo() {
+  S.customTempo = parseFloat(document.querySelector('.slider-container input').value);
+  S.speed = 'Custom';
+  updateDisplay(); closeModal();
 }
 
-function updateFigure() {
-  $golferFigure.src = state.selectedGame === 'Short' ? 'images/figure.short.png' : 'images/figure.long.png';
+function showInfoModal() {
+  openModal(`<div class="modal-title">About Golf Pro Tempo</div>
+    <div class="info-content">
+      <p>Golf Pro Tempo is a metronome-style training tool that helps golfers develop consistent swing tempo.</p>
+      <p><strong>How it works:</strong> The app plays three tones during your swing: backswing, downswing, and impact. Train your body to match these beats for a repeatable tempo.</p>
+      <p><strong>Ratio:</strong> The ratio between backswing and downswing time. Tour pros typically use a 3:1 ratio for full swings.</p>
+      <p><strong>Levels:</strong> Level 1 is slowest, Level 8 is fastest. Start slow and work up.</p>
+    </div>
+    <button class="modal-close" onclick="closeModal()">Close</button>`);
 }
 
-function updateMenuValues() {
-  $gameValue.textContent = state.selectedGame;
-  $tempoValue.textContent = state.selectedSpeed;
-  $toneValue.textContent = state.selectedTone;
-  $intervalValue.textContent = state.selectedLoopDelay;
+function confirmAction(msg, cb) {
+  openModal(`<div class="confirm-text">${msg}</div>
+    <div class="confirm-btns">
+      <button class="confirm-cancel" onclick="closeModal()">Cancel</button>
+      <button class="confirm-ok" onclick="closeModal();(${cb.name})()">Confirm</button>
+    </div>`);
+}
+
+function promptModal(title, cb) {
+  openModal(`<div class="modal-title">${title}</div>
+    <input class="prompt-input" id="promptInput" type="text" placeholder="Enter name..." autofocus>
+    <button class="modal-apply-btn" onclick="let v=document.getElementById('promptInput').value.trim();closeModal();if(v)(${cb.name})(v)">Save</button>
+    <button class="modal-close" onclick="closeModal()">Cancel</button>`);
+  setTimeout(() => { let el = document.getElementById('promptInput'); if (el) el.focus(); }, 350);
+}
+
+// ==================== AUDIO ENGINE ====================
+let audioCtx = null;
+let audioBuffers = {};
+let playTimeout = null;
+let sessionStart = null;
+
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+
+async function loadSound(url) {
+  if (audioBuffers[url]) return audioBuffers[url];
+  try {
+    let resp = await fetch(url);
+    let buf = await resp.arrayBuffer();
+    let decoded = await getAudioCtx().decodeAudioData(buf);
+    audioBuffers[url] = decoded;
+    return decoded;
+  } catch(e) { console.warn('Audio load failed:', url, e); return null; }
+}
+
+function playSound(buffer) {
+  if (!buffer) return;
+  let settings = loadSettingsObj();
+  if (!settings.sound) return;
+  let ctx = getAudioCtx();
+  let source = ctx.createBufferSource();
+  source.buffer = buffer;
+  source.connect(ctx.destination);
+  source.start(0);
+}
+
+function doVibrate(ms) {
+  let settings = loadSettingsObj();
+  if (settings.haptic && navigator.vibrate) navigator.vibrate(ms || 30);
+}
+
+function getToneFiles(tone) {
+  let name = tone === '8-Bit' ? '8-Bit' : tone;
+  return [`audio/${name}1.mp3`, `audio/${name}2.mp3`, `audio/${name}3.mp3`];
+}
+
+async function preloadTone(tone) {
+  let files = getToneFiles(tone);
+  await Promise.all(files.map(f => loadSound(f)));
+}
+
+// ==================== PLAY/STOP ====================
+function togglePlay() {
+  if (S.playing) { stopPlay(); } else { startPlay(); }
+}
+
+async function startPlay() {
+  S.playing = true;
+  S.swingCount = 0;
+  sessionStart = Date.now();
+  updatePlayButton();
+  await preloadTone(S.tone);
+  swingCycle();
+}
+
+function stopPlay() {
+  S.playing = false;
+  if (playTimeout) { clearTimeout(playTimeout); playTimeout = null; }
+  updatePlayButton();
+  document.getElementById('swingCounter').textContent = '';
+  document.getElementById('waitingText').textContent = '';
+  // Log session
+  if (S.swingCount > 0 && sessionStart) {
+    let dur = Math.round((Date.now() - sessionStart) / 1000);
+    logSession({ date: new Date().toISOString(), swings: S.swingCount, duration: dur, game: S.game, speed: S.speed, tone: S.tone, interval: S.interval, type: 'freeplay' });
+  }
+  sessionStart = null;
 }
 
 function updatePlayButton() {
-  if (state.isPlaying) {
-    $playIcon.style.display = 'none';
-    $stopIcon.style.display = 'block';
-    $playLabel.textContent = 'Stop';
-  } else {
-    $playIcon.style.display = 'block';
-    $stopIcon.style.display = 'none';
-    $playLabel.textContent = 'Play';
-  }
+  document.getElementById('playIcon').style.display = S.playing ? 'none' : '';
+  document.getElementById('stopIcon').style.display = S.playing ? '' : 'none';
 }
 
-function updateWaiting() {
-  $waitingText.classList.toggle('visible', state.isWaiting && state.isPlaying);
+async function swingCycle() {
+  if (!S.playing) return;
+  let v = getTempoValues(S.game, S.speed, S.customRatio, S.customTempo);
+  let files = getToneFiles(S.tone);
+  let buf1 = await loadSound(files[0]);
+  let buf2 = await loadSound(files[1]);
+  let buf3 = await loadSound(files[2]);
+
+  // Sound 1 - backswing
+  playSound(buf1); doVibrate(30);
+  document.getElementById('waitingText').textContent = '';
+
+  playTimeout = setTimeout(() => {
+    if (!S.playing) return;
+    // Sound 2 - downswing
+    playSound(buf2); doVibrate(20);
+
+    playTimeout = setTimeout(() => {
+      if (!S.playing) return;
+      // Sound 3 - impact
+      playSound(buf3); doVibrate(40);
+      S.swingCount++;
+      document.getElementById('swingCounter').innerHTML = '\u26F3 ' + S.swingCount;
+
+      let loopDelay = parseFloat(S.interval) || 0;
+      let totalPause = 1.0 + loopDelay;
+
+      if (loopDelay > 0) {
+        document.getElementById('waitingText').textContent = 'Waiting...';
+      }
+
+      playTimeout = setTimeout(() => {
+        if (!S.playing) return;
+        swingCycle();
+      }, totalPause * 1000);
+    }, v.down * 1000);
+  }, v.back * 1000);
 }
 
-// ===================== TEMPO CALCULATIONS =====================
-function updateTimes() {
-  switch (state.selectedGame) {
-    case 'Long':
-      state.ratio = '3:1';
-      switch (state.selectedSpeed) {
-        case 'Level 1': state.backTime = '1.20s'; state.downTime = '0.40s'; state.tempo = '1.60s'; break;
-        case 'Level 2': state.backTime = '1.10s'; state.downTime = '0.37s'; state.tempo = '1.47s'; break;
-        case 'Level 3': state.backTime = '1.00s'; state.downTime = '0.33s'; state.tempo = '1.33s'; break;
-        case 'Level 4': state.backTime = '0.90s'; state.downTime = '0.30s'; state.tempo = '1.20s'; break;
-        case 'Level 5': state.backTime = '0.80s'; state.downTime = '0.27s'; state.tempo = '1.07s'; break;
-        case 'Level 6': state.backTime = '0.70s'; state.downTime = '0.23s'; state.tempo = '0.93s'; break;
-        case 'Level 7': state.backTime = '0.60s'; state.downTime = '0.20s'; state.tempo = '0.80s'; break;
-        case 'Level 8': state.backTime = '0.50s'; state.downTime = '0.17s'; state.tempo = '0.67s'; break;
-        case 'Custom': updateCustomSpeed(); return;
-      }
-      break;
-    case 'Short':
-      state.ratio = '2:1';
-      switch (state.selectedSpeed) {
-        case 'Level 1': state.backTime = '0.80s'; state.downTime = '0.40s'; state.tempo = '1.20s'; break;
-        case 'Level 2': state.backTime = '0.73s'; state.downTime = '0.37s'; state.tempo = '1.10s'; break;
-        case 'Level 3': state.backTime = '0.67s'; state.downTime = '0.33s'; state.tempo = '1.00s'; break;
-        case 'Level 4': state.backTime = '0.60s'; state.downTime = '0.30s'; state.tempo = '0.90s'; break;
-        case 'Level 5': state.backTime = '0.53s'; state.downTime = '0.27s'; state.tempo = '0.80s'; break;
-        case 'Level 6': state.backTime = '0.47s'; state.downTime = '0.23s'; state.tempo = '0.70s'; break;
-        case 'Level 7': state.backTime = '0.40s'; state.downTime = '0.20s'; state.tempo = '0.60s'; break;
-        case 'Level 8': state.backTime = '0.33s'; state.downTime = '0.17s'; state.tempo = '0.50s'; break;
-        case 'Custom': updateCustomSpeed(); return;
-      }
-      break;
-    case 'Custom':
-      if (state.selectedSpeed !== 'Custom') {
-        var tempoMap = { 'Level 1': 1.60, 'Level 2': 1.47, 'Level 3': 1.33, 'Level 4': 1.20, 'Level 5': 1.07, 'Level 6': 0.93, 'Level 7': 0.80, 'Level 8': 0.67 };
-        var tempoFromSpeed = tempoMap[state.selectedSpeed] || 1.60;
-        var downVal = tempoFromSpeed / (state.customRatio + 1);
-        var backVal = downVal * state.customRatio;
-        state.backTime = backVal.toFixed(2) + 's';
-        state.downTime = downVal.toFixed(2) + 's';
-        state.ratio = state.customRatio.toFixed(1) + ':1';
-        state.tempo = tempoFromSpeed.toFixed(2) + 's';
-      } else {
-        updateCustomGame();
+// ==================== DRILL PLAY (used by drills) ====================
+let drillState = null;
+
+async function drillSwingCycle(onComplete) {
+  if (!drillState || !drillState.playing) return;
+  let v = drillState.tempoValues;
+  let files = getToneFiles(drillState.tone);
+  let buf1 = await loadSound(files[0]);
+  let buf2 = await loadSound(files[1]);
+  let buf3 = await loadSound(files[2]);
+
+  playSound(buf1); doVibrate(30);
+
+  drillState.timeout = setTimeout(() => {
+    if (!drillState || !drillState.playing) return;
+    playSound(buf2); doVibrate(20);
+
+    drillState.timeout = setTimeout(() => {
+      if (!drillState || !drillState.playing) return;
+      playSound(buf3); doVibrate(40);
+      drillState.currentRep++;
+      updateDrillPlayerUI();
+
+      if (drillState.currentRep >= drillState.targetReps) {
+        onComplete();
         return;
       }
-      break;
-  }
-  updateStats();
-  updateFigure();
+
+      let loopDelay = drillState.loopDelay || 0;
+      let totalPause = 1.0 + loopDelay;
+
+      drillState.timeout = setTimeout(() => {
+        if (!drillState || !drillState.playing) return;
+        drillSwingCycle(onComplete);
+      }, totalPause * 1000);
+    }, v.down * 1000);
+  }, v.back * 1000);
 }
 
-function updateCustomGame() {
-  var tempoVal = parseFloat(state.tempo) || state.customTempo;
-  var downVal = tempoVal / (state.customRatio + 1);
-  var backVal = downVal * state.customRatio;
-  state.backTime = backVal.toFixed(2) + 's';
-  state.downTime = downVal.toFixed(2) + 's';
-  state.ratio = state.customRatio.toFixed(1) + ':1';
-  state.tempo = tempoVal.toFixed(2) + 's';
-  state.selectedGame = 'Custom';
-  updateStats();
-  updateMenuValues();
-  updateFigure();
-}
+// ==================== PRESETS ====================
+const BUILTIN_PRESETS = [
+  { name: 'Tour Pro', game: 'Long', speed: 'Level 2', tone: 'Piano', interval: '0s', customRatio: 3.0, customTempo: 1.47 },
+  { name: 'Beginner', game: 'Long', speed: 'Level 1', tone: 'Piano', interval: '3s', customRatio: 3.0, customTempo: 1.60 },
+  { name: 'Short Game', game: 'Short', speed: 'Level 3', tone: 'Piano', interval: '0s', customRatio: 2.0, customTempo: 1.00 },
+  { name: 'Speed Drill', game: 'Long', speed: 'Level 6', tone: 'Beep', interval: '0s', customRatio: 3.0, customTempo: 0.93 },
+  { name: 'Putting', game: 'Short', speed: 'Level 1', tone: 'Piano', interval: '0s', customRatio: 2.0, customTempo: 1.20 },
+  { name: 'Power Drive', game: 'Long', speed: 'Level 4', tone: 'Drum', interval: '0s', customRatio: 3.0, customTempo: 1.20 }
+];
 
-function updateCustomSpeed() {
-  var ratioVal = parseFloat(state.ratio) || state.customRatio;
-  var downVal = state.customTempo / (ratioVal + 1);
-  var backVal = downVal * ratioVal;
-  state.backTime = backVal.toFixed(2) + 's';
-  state.downTime = downVal.toFixed(2) + 's';
-  state.tempo = state.customTempo.toFixed(2) + 's';
-  state.selectedSpeed = 'Custom';
-  updateStats();
-  updateMenuValues();
-}
+function renderPresets() {
+  let bhtml = '';
+  BUILTIN_PRESETS.forEach(p => {
+    let v = getTempoValues(p.game, p.speed, p.customRatio || 3.0, p.customTempo || 1.47);
+    bhtml += `<div class="preset-card">
+      <div class="preset-info"><h3>${p.name}</h3><p>${p.game} \u2022 ${p.speed} \u2022 ${v.tempo.toFixed(2)}s \u2022 Ratio ${v.ratio.toFixed(1)}</p></div>
+      <div class="preset-actions"><button class="preset-apply-btn" onclick="applyPreset(${JSON.stringify(p).replace(/"/g,'&quot;')})">Apply</button></div>
+    </div>`;
+  });
+  document.getElementById('builtinPresets').innerHTML = bhtml;
 
-function getBackTimeValue() { return parseFloat(state.backTime) || 1.1; }
-function getDownTimeValue() { return parseFloat(state.downTime) || 0.37; }
-function getLoopDelayValue() { return parseFloat(state.selectedLoopDelay) || 0; }
-
-// ===================== PLAYBACK =====================
-function togglePlayback() {
-  if (state.isPlaying) {
-    stopPlayback();
+  let userPresets = JSON.parse(localStorage.getItem('gpt_userPresets') || '[]');
+  let uhtml = '';
+  if (userPresets.length === 0) {
+    uhtml = '<div class="empty-state"><p>No saved presets yet</p></div>';
   } else {
-    startPlayback();
-  }
-}
-
-async function startPlayback() {
-  var backTime = getBackTimeValue();
-  var downTime = getDownTimeValue();
-  var loopDelay = getLoopDelayValue();
-  state.isPlaying = true;
-  updatePlayButton();
-  await audio.startPlayback(backTime, downTime, loopDelay, state.selectedTone);
-}
-
-function stopPlayback() {
-  state.isPlaying = false;
-  audio.stop();
-  updatePlayButton();
-  updateWaiting();
-}
-
-function resetPlayback() {
-  if (state.isPlaying) {
-    stopPlayback();
-    startPlayback();
-  }
-}
-
-// ===================== DROPDOWNS =====================
-var openDropdownId = null;
-
-function closeAllDropdowns() {
-  document.querySelectorAll('.dropdown').forEach(function(d) { d.classList.remove('open'); });
-  $dropdownBackdrop.classList.remove('open');
-  openDropdownId = null;
-}
-
-function renderDropdown(id, options, currentValue, onSelect, customAction) {
-  var dd = document.getElementById(id);
-  dd.innerHTML = '';
-  options.forEach(function(option) {
-    var item = document.createElement('button');
-    item.className = 'dropdown-item' + (option === currentValue ? ' active' : '');
-    item.textContent = option;
-    if (option === currentValue) {
-      var check = document.createElement('span');
-      check.className = 'dropdown-check';
-      check.innerHTML = ' &#10003;';
-      check.style.color = 'var(--green)';
-      check.style.marginLeft = 'auto';
-      check.style.paddingLeft = '8px';
-      item.appendChild(check);
-    }
-    item.addEventListener('click', function(e) {
-      e.stopPropagation();
-      if (option === 'Custom' && customAction) {
-        closeAllDropdowns();
-        customAction();
-      } else {
-        onSelect(option);
-        closeAllDropdowns();
-      }
+    userPresets.forEach((p, i) => {
+      let v = getTempoValues(p.game, p.speed, p.customRatio || 3.0, p.customTempo || 1.47);
+      uhtml += `<div class="preset-card">
+        <div class="preset-info"><h3>${p.name}</h3><p>${p.game} \u2022 ${p.speed} \u2022 ${v.tempo.toFixed(2)}s</p></div>
+        <div class="preset-actions">
+          <button class="preset-apply-btn" onclick='applyPreset(${JSON.stringify(p).replace(/'/g,"\\'")})'> Apply</button>
+          <button class="preset-delete-btn" onclick="deleteUserPreset(${i})">X</button>
+        </div>
+      </div>`;
     });
-    dd.appendChild(item);
-  });
-}
-
-function openDropdown(menuId, dropdownId, options, currentValue, onSelect, customAction) {
-  if (openDropdownId === dropdownId) {
-    closeAllDropdowns();
-    return;
   }
-  closeAllDropdowns();
-  renderDropdown(dropdownId, options, currentValue, onSelect, customAction);
-  document.getElementById(dropdownId).classList.add('open');
-  $dropdownBackdrop.classList.add('open');
-  openDropdownId = dropdownId;
+  document.getElementById('userPresets').innerHTML = uhtml;
 }
 
-// Menu button click handlers
-document.querySelector('[data-menu="game"]').addEventListener('click', function() {
-  openDropdown('menuGame', 'dropdownGame', gameOptions, state.selectedGame, function(val) {
-    state.selectedGame = val;
-    updateTimes();
-    updateMenuValues();
-    resetPlayback();
-  }, function() {
-    openRatioModal();
-  });
-});
+function applyPreset(p) {
+  S.game = p.game; S.speed = p.speed; S.tone = p.tone; S.interval = p.interval;
+  if (p.customRatio) S.customRatio = p.customRatio;
+  if (p.customTempo) S.customTempo = p.customTempo;
+  updateDisplay();
+  switchTab('Home', document.querySelectorAll('.tab-btn')[0]);
+}
 
-document.querySelector('[data-menu="tempo"]').addEventListener('click', function() {
-  openDropdown('menuTempo', 'dropdownTempo', speedOptions, state.selectedSpeed, function(val) {
-    state.selectedSpeed = val;
-    updateTimes();
-    updateMenuValues();
-    resetPlayback();
-  }, function() {
-    openTempoModal();
-  });
-});
+function saveCurrentPreset() {
+  promptModal('Name this preset', finishSavePreset);
+}
+function finishSavePreset(name) {
+  let presets = JSON.parse(localStorage.getItem('gpt_userPresets') || '[]');
+  presets.push({ name, game: S.game, speed: S.speed, tone: S.tone, interval: S.interval, customRatio: S.customRatio, customTempo: S.customTempo });
+  localStorage.setItem('gpt_userPresets', JSON.stringify(presets));
+  renderPresets();
+}
+function deleteUserPreset(i) {
+  let presets = JSON.parse(localStorage.getItem('gpt_userPresets') || '[]');
+  presets.splice(i, 1);
+  localStorage.setItem('gpt_userPresets', JSON.stringify(presets));
+  renderPresets();
+}
 
-document.querySelector('[data-menu="tone"]').addEventListener('click', function() {
-  openDropdown('menuTone', 'dropdownTone', toneOptions, state.selectedTone, function(val) {
-    state.selectedTone = val;
-    updateMenuValues();
-    audio.init().then(function() { audio.loadTone(val); });
-    resetPlayback();
-  });
-});
-
-document.querySelector('[data-menu="interval"]').addEventListener('click', function() {
-  openDropdown('menuInterval', 'dropdownInterval', loopDelayOptions, state.selectedLoopDelay, function(val) {
-    state.selectedLoopDelay = val;
-    updateMenuValues();
-    resetPlayback();
-  });
-});
-
-$dropdownBackdrop.addEventListener('click', closeAllDropdowns);
-
-// ===================== PLAY BUTTON =====================
-$playBtn.addEventListener('click', togglePlayback);
-
-// ===================== INFO MODAL =====================
-document.getElementById('infoBtn').addEventListener('click', function() {
-  document.getElementById('infoModal').classList.add('open');
-});
-
-document.getElementById('infoClose').addEventListener('click', function() {
-  document.getElementById('infoModal').classList.remove('open');
-});
-
-document.getElementById('infoModal').addEventListener('click', function(e) {
-  if (e.target === e.currentTarget) {
-    e.currentTarget.classList.remove('open');
+// ==================== 20 DRILLS (exact iOS main5 data) ====================
+const DRILLS = [
+  {
+    id:1, name:'Speed Ladder', difficulty:'Intermediate', time:'10 min',
+    desc:'Gradually increase tempo from Level 1 to Level 5. Build speed while maintaining rhythm.',
+    steps:[
+      {label:'Start slow \u2014 feel the rhythm', game:'Long', speed:'Level 1', tone:'Piano', interval:'0s', reps:10, customRatio:3.0, customTempo:1.60},
+      {label:'Increase slightly', game:'Long', speed:'Level 2', tone:'Piano', interval:'0s', reps:10, customRatio:3.0, customTempo:1.47},
+      {label:'Medium tempo', game:'Long', speed:'Level 3', tone:'Piano', interval:'0s', reps:10, customRatio:3.0, customTempo:1.33},
+      {label:'Getting faster', game:'Long', speed:'Level 4', tone:'Piano', interval:'0s', reps:10, customRatio:3.0, customTempo:1.20},
+      {label:'Top speed \u2014 stay smooth', game:'Long', speed:'Level 5', tone:'Piano', interval:'0s', reps:10, customRatio:3.0, customTempo:1.07}
+    ], restBetween:5
+  },
+  {
+    id:2, name:'Consistency', difficulty:'Beginner', time:'8 min',
+    desc:'30 swings at the same tempo. Build muscle memory through repetition.',
+    steps:[
+      {label:'Find your rhythm and maintain it for 30 swings', game:'Long', speed:'Level 2', tone:'Piano', interval:'0s', reps:30, customRatio:3.0, customTempo:1.47}
+    ], restBetween:0
+  },
+  {
+    id:3, name:'Ratio Explorer', difficulty:'Intermediate', time:'12 min',
+    desc:'Explore different backswing-to-downswing ratios to find what feels natural.',
+    steps:[
+      {label:'2:1 ratio \u2014 equal feel', game:'Custom', speed:'Level 2', tone:'Piano', interval:'0s', reps:8, customRatio:2.0, customTempo:1.47},
+      {label:'2.5:1 ratio \u2014 slightly longer back', game:'Custom', speed:'Level 2', tone:'Piano', interval:'0s', reps:8, customRatio:2.5, customTempo:1.47},
+      {label:'3:1 ratio \u2014 tour standard', game:'Long', speed:'Level 2', tone:'Piano', interval:'0s', reps:8, customRatio:3.0, customTempo:1.47},
+      {label:'3.5:1 ratio \u2014 deliberate backswing', game:'Custom', speed:'Level 2', tone:'Piano', interval:'0s', reps:8, customRatio:3.5, customTempo:1.47}
+    ], restBetween:5
+  },
+  {
+    id:4, name:'Short & Long', difficulty:'Advanced', time:'10 min',
+    desc:'Alternate between short game and full swing tempo. Develop versatility.',
+    steps:[
+      {label:'Short game tempo', game:'Short', speed:'Level 2', tone:'Piano', interval:'0s', reps:8, customRatio:2.0, customTempo:1.10},
+      {label:'Full swing tempo', game:'Long', speed:'Level 2', tone:'Piano', interval:'0s', reps:8, customRatio:3.0, customTempo:1.47},
+      {label:'Short game tempo', game:'Short', speed:'Level 2', tone:'Piano', interval:'0s', reps:8, customRatio:2.0, customTempo:1.10},
+      {label:'Full swing tempo', game:'Long', speed:'Level 2', tone:'Piano', interval:'0s', reps:8, customRatio:3.0, customTempo:1.47}
+    ], restBetween:5
+  },
+  {
+    id:5, name:'Warm Up', difficulty:'Beginner', time:'6 min',
+    desc:'Gentle warm-up routine. Start slow and work up to your practice tempo.',
+    steps:[
+      {label:'Very slow \u2014 loosen up', game:'Long', speed:'Level 1', tone:'Piano', interval:'3s', reps:8, customRatio:3.0, customTempo:1.60},
+      {label:'Moderate \u2014 finding the groove', game:'Long', speed:'Level 2', tone:'Piano', interval:'0s', reps:10, customRatio:3.0, customTempo:1.47},
+      {label:'Ready to practice', game:'Long', speed:'Level 3', tone:'Piano', interval:'0s', reps:10, customRatio:3.0, customTempo:1.33}
+    ], restBetween:5
+  },
+  {
+    id:6, name:'Tour Pro Challenge', difficulty:'Advanced', time:'12 min',
+    desc:'Train at the three classic Tour Tempo speeds discovered by John Novosel. Based on frame-by-frame analysis of PGA Tour players.',
+    steps:[
+      {label:'27/9 tempo (1.20s) \u2014 Ernie Els, Fred Couples pace', game:'Long', speed:'Level 4', tone:'Piano', interval:'0s', reps:10, customRatio:3.0, customTempo:1.20},
+      {label:'24/8 tempo (1.07s) \u2014 Tiger Woods, Adam Scott pace', game:'Long', speed:'Level 5', tone:'Piano', interval:'0s', reps:10, customRatio:3.0, customTempo:1.07},
+      {label:'21/7 tempo (0.93s) \u2014 Ben Hogan, Nick Price pace', game:'Long', speed:'Level 6', tone:'Piano', interval:'0s', reps:10, customRatio:3.0, customTempo:0.93}
+    ], restBetween:5
+  },
+  {
+    id:7, name:'Reverse Ladder', difficulty:'Intermediate', time:'10 min',
+    desc:'Start fast, gradually slow down. Teaches deceleration control and prevents rushing after fast swings.',
+    steps:[
+      {label:'Start at top speed \u2014 controlled aggression', game:'Long', speed:'Level 5', tone:'Piano', interval:'0s', reps:8, customRatio:3.0, customTempo:1.07},
+      {label:'Ease back slightly', game:'Long', speed:'Level 4', tone:'Piano', interval:'0s', reps:8, customRatio:3.0, customTempo:1.20},
+      {label:'Medium \u2014 find the center', game:'Long', speed:'Level 3', tone:'Piano', interval:'0s', reps:8, customRatio:3.0, customTempo:1.33},
+      {label:'Slow it down \u2014 maintain quality', game:'Long', speed:'Level 2', tone:'Piano', interval:'0s', reps:8, customRatio:3.0, customTempo:1.47},
+      {label:'Slowest \u2014 smooth and balanced', game:'Long', speed:'Level 1', tone:'Piano', interval:'0s', reps:8, customRatio:3.0, customTempo:1.60}
+    ], restBetween:5
+  },
+  {
+    id:8, name:'Feet Together', difficulty:'Beginner', time:'8 min',
+    desc:'Classic PGA teaching drill. Slow tempo with feet together forces balance and eliminates excess body movement. Swing easy \u2014 focus on staying centered.',
+    steps:[
+      {label:'Half swings \u2014 feel the balance point', game:'Long', speed:'Level 1', tone:'Piano', interval:'3s', reps:10, customRatio:3.0, customTempo:1.60},
+      {label:'Three-quarter swings \u2014 stay centered', game:'Long', speed:'Level 1', tone:'Piano', interval:'0s', reps:10, customRatio:3.0, customTempo:1.60},
+      {label:'Full swings \u2014 smooth finish, hold balance', game:'Long', speed:'Level 2', tone:'Piano', interval:'0s', reps:10, customRatio:3.0, customTempo:1.47}
+    ], restBetween:5
+  },
+  {
+    id:9, name:'Pause & Go', difficulty:'Beginner', time:'8 min',
+    desc:'Extra pause between swings to focus on the transition from backswing to downswing. Eliminates rushing at the top.',
+    steps:[
+      {label:'Slow tempo with 5s pause \u2014 feel the top', game:'Long', speed:'Level 1', tone:'Piano', interval:'5s', reps:10, customRatio:3.0, customTempo:1.60},
+      {label:'Medium tempo with 3s pause \u2014 smooth transition', game:'Long', speed:'Level 2', tone:'Piano', interval:'3s', reps:10, customRatio:3.0, customTempo:1.47},
+      {label:'Normal tempo, no pause \u2014 carry the feel', game:'Long', speed:'Level 2', tone:'Piano', interval:'0s', reps:10, customRatio:3.0, customTempo:1.47}
+    ], restBetween:5
+  },
+  {
+    id:10, name:'Putting Rhythm', difficulty:'Beginner', time:'6 min',
+    desc:'Develop consistent putting stroke tempo. The ideal putting ratio is 2:1 \u2014 backstroke twice as long as forward stroke. Keep the same rhythm for all distances.',
+    steps:[
+      {label:'Short putts (5-10 feet) \u2014 same rhythm', game:'Short', speed:'Level 1', tone:'Piano', interval:'3s', reps:10, customRatio:2.0, customTempo:1.20},
+      {label:'Medium putts (15-25 feet) \u2014 same rhythm, longer stroke', game:'Short', speed:'Level 1', tone:'Piano', interval:'3s', reps:10, customRatio:2.0, customTempo:1.20},
+      {label:'Long lag putts (30+ feet) \u2014 same rhythm, longest stroke', game:'Short', speed:'Level 1', tone:'Piano', interval:'3s', reps:10, customRatio:2.0, customTempo:1.20}
+    ], restBetween:5
+  },
+  {
+    id:11, name:'Wedge Clock System', difficulty:'Intermediate', time:'10 min',
+    desc:'Use the clock system for wedge distance control. Same tempo, different swing lengths: 8 o\'clock (short), 9 o\'clock (medium), 10 o\'clock (full). Tempo stays constant \u2014 only length changes.',
+    steps:[
+      {label:'8 o\'clock \u2014 short pitch (30-40 yards)', game:'Short', speed:'Level 2', tone:'Piano', interval:'0s', reps:8, customRatio:2.0, customTempo:1.10},
+      {label:'9 o\'clock \u2014 half swing (50-60 yards)', game:'Short', speed:'Level 3', tone:'Piano', interval:'0s', reps:8, customRatio:2.0, customTempo:1.00},
+      {label:'10 o\'clock \u2014 three-quarter (70-80 yards)', game:'Short', speed:'Level 4', tone:'Piano', interval:'0s', reps:8, customRatio:2.0, customTempo:0.90},
+      {label:'Full wedge \u2014 smooth full swing (90-100 yards)', game:'Long', speed:'Level 3', tone:'Piano', interval:'0s', reps:8, customRatio:3.0, customTempo:1.33}
+    ], restBetween:5
+  },
+  {
+    id:12, name:'100-Swing Challenge', difficulty:'Advanced', time:'20 min',
+    desc:'100 swings at one tempo. The ultimate consistency test. Can you maintain the same rhythm from swing 1 to swing 100?',
+    steps:[
+      {label:'First 25 \u2014 establish the rhythm', game:'Long', speed:'Level 2', tone:'Piano', interval:'0s', reps:25, customRatio:3.0, customTempo:1.47},
+      {label:'Swings 26-50 \u2014 maintain through fatigue', game:'Long', speed:'Level 2', tone:'Piano', interval:'0s', reps:25, customRatio:3.0, customTempo:1.47},
+      {label:'Swings 51-75 \u2014 mental focus zone', game:'Long', speed:'Level 2', tone:'Piano', interval:'0s', reps:25, customRatio:3.0, customTempo:1.47},
+      {label:'Final 25 \u2014 finish strong, same tempo', game:'Long', speed:'Level 2', tone:'Piano', interval:'0s', reps:25, customRatio:3.0, customTempo:1.47}
+    ], restBetween:10
+  },
+  {
+    id:13, name:'Pre-Round Routine', difficulty:'Beginner', time:'12 min',
+    desc:'Simulate a structured range warm-up before your round. Wedges \u2192 mid-irons \u2192 driver, gradually building to your playing tempo.',
+    steps:[
+      {label:'Easy wedge swings \u2014 70% effort', game:'Short', speed:'Level 1', tone:'Piano', interval:'3s', reps:5, customRatio:2.0, customTempo:1.20},
+      {label:'Wedge full swings', game:'Long', speed:'Level 2', tone:'Piano', interval:'0s', reps:5, customRatio:3.0, customTempo:1.47},
+      {label:'Mid-iron tempo (7-iron feel)', game:'Long', speed:'Level 3', tone:'Piano', interval:'0s', reps:5, customRatio:3.0, customTempo:1.33},
+      {label:'Long iron / hybrid', game:'Long', speed:'Level 3', tone:'Piano', interval:'0s', reps:5, customRatio:3.0, customTempo:1.33},
+      {label:'Driver \u2014 your playing tempo', game:'Long', speed:'Level 4', tone:'Piano', interval:'0s', reps:5, customRatio:3.0, customTempo:1.20},
+      {label:'Finish with a wedge \u2014 calm before the storm', game:'Short', speed:'Level 2', tone:'Piano', interval:'0s', reps:3, customRatio:2.0, customTempo:1.10}
+    ], restBetween:5
+  },
+  {
+    id:14, name:'Speed Burst', difficulty:'Advanced', time:'10 min',
+    desc:'Alternate between slow and fast tempos. Contrast training builds awareness of your tempo and develops speed control. Like interval training for your swing.',
+    steps:[
+      {label:'Slow \u2014 establish baseline', game:'Long', speed:'Level 1', tone:'Piano', interval:'0s', reps:6, customRatio:3.0, customTempo:1.60},
+      {label:'FAST \u2014 controlled explosion', game:'Long', speed:'Level 5', tone:'Piano', interval:'0s', reps:6, customRatio:3.0, customTempo:1.07},
+      {label:'Slow \u2014 regain control', game:'Long', speed:'Level 1', tone:'Piano', interval:'0s', reps:6, customRatio:3.0, customTempo:1.60},
+      {label:'FAST \u2014 stay smooth at speed', game:'Long', speed:'Level 5', tone:'Piano', interval:'0s', reps:6, customRatio:3.0, customTempo:1.07},
+      {label:'Medium \u2014 find your game tempo', game:'Long', speed:'Level 3', tone:'Piano', interval:'0s', reps:8, customRatio:3.0, customTempo:1.33}
+    ], restBetween:3
+  },
+  {
+    id:15, name:'Short Game Ladder', difficulty:'Intermediate', time:'10 min',
+    desc:'Progressive speed increase for short game shots. Build touch and feel around the green at different speeds.',
+    steps:[
+      {label:'Soft chip \u2014 barely moving', game:'Short', speed:'Level 1', tone:'Piano', interval:'3s', reps:8, customRatio:2.0, customTempo:1.20},
+      {label:'Medium pitch \u2014 20-30 yards', game:'Short', speed:'Level 2', tone:'Piano', interval:'0s', reps:8, customRatio:2.0, customTempo:1.10},
+      {label:'Three-quarter pitch \u2014 40-50 yards', game:'Short', speed:'Level 3', tone:'Piano', interval:'0s', reps:8, customRatio:2.0, customTempo:1.00},
+      {label:'Full pitch \u2014 60-70 yards', game:'Short', speed:'Level 4', tone:'Piano', interval:'0s', reps:8, customRatio:2.0, customTempo:0.90}
+    ], restBetween:5
+  },
+  {
+    id:16, name:'Ratio Dialer', difficulty:'Intermediate', time:'12 min',
+    desc:'Fine-tune your backswing-to-downswing ratio in small increments. Find the exact ratio that produces your best ball striking.',
+    steps:[
+      {label:'2.5:1 \u2014 compact, quick transition', game:'Custom', speed:'Level 3', tone:'Piano', interval:'0s', reps:8, customRatio:2.5, customTempo:1.33},
+      {label:'2.8:1 \u2014 slightly longer backswing', game:'Custom', speed:'Level 3', tone:'Piano', interval:'0s', reps:8, customRatio:2.8, customTempo:1.33},
+      {label:'3.0:1 \u2014 the tour standard', game:'Long', speed:'Level 3', tone:'Piano', interval:'0s', reps:8, customRatio:3.0, customTempo:1.33},
+      {label:'3.2:1 \u2014 deliberate backswing', game:'Custom', speed:'Level 3', tone:'Piano', interval:'0s', reps:8, customRatio:3.2, customTempo:1.33},
+      {label:'3.5:1 \u2014 max patience on the way back', game:'Custom', speed:'Level 3', tone:'Piano', interval:'0s', reps:8, customRatio:3.5, customTempo:1.33}
+    ], restBetween:5
+  },
+  {
+    id:17, name:'Scramble Simulator', difficulty:'Advanced', time:'12 min',
+    desc:'Simulate on-course situations: alternate between chips, pitches, and full swings. Train your brain to switch tempos like you do on the course.',
+    steps:[
+      {label:'Full approach shot', game:'Long', speed:'Level 3', tone:'Piano', interval:'0s', reps:5, customRatio:3.0, customTempo:1.33},
+      {label:'Chip to the pin', game:'Short', speed:'Level 1', tone:'Piano', interval:'3s', reps:5, customRatio:2.0, customTempo:1.20},
+      {label:'Full swing \u2014 different club', game:'Long', speed:'Level 2', tone:'Piano', interval:'0s', reps:5, customRatio:3.0, customTempo:1.47},
+      {label:'Pitch shot \u2014 40 yards', game:'Short', speed:'Level 3', tone:'Piano', interval:'0s', reps:5, customRatio:2.0, customTempo:1.00},
+      {label:'Driver tempo', game:'Long', speed:'Level 4', tone:'Piano', interval:'0s', reps:5, customRatio:3.0, customTempo:1.20},
+      {label:'Final putt \u2014 calm finish', game:'Short', speed:'Level 1', tone:'Piano', interval:'3s', reps:5, customRatio:2.0, customTempo:1.20}
+    ], restBetween:5
+  },
+  {
+    id:18, name:'Power Building', difficulty:'Advanced', time:'12 min',
+    desc:'Progressive overload for swing speed. Build from medium to very fast tempo while maintaining the 3:1 ratio. Like weight training \u2014 add speed gradually.',
+    steps:[
+      {label:'Medium pace \u2014 establish form', game:'Long', speed:'Level 3', tone:'Piano', interval:'0s', reps:8, customRatio:3.0, customTempo:1.33},
+      {label:'Increase \u2014 27/9 tour tempo', game:'Long', speed:'Level 4', tone:'Piano', interval:'0s', reps:8, customRatio:3.0, customTempo:1.20},
+      {label:'Faster \u2014 24/8 tour tempo', game:'Long', speed:'Level 5', tone:'Piano', interval:'0s', reps:8, customRatio:3.0, customTempo:1.07},
+      {label:'21/7 \u2014 Ben Hogan speed', game:'Long', speed:'Level 6', tone:'Piano', interval:'0s', reps:8, customRatio:3.0, customTempo:0.93},
+      {label:'Maximum speed \u2014 controlled power', game:'Long', speed:'Level 7', tone:'Piano', interval:'0s', reps:6, customRatio:3.0, customTempo:0.80}
+    ], restBetween:5
+  },
+  {
+    id:19, name:'Rhythm Reset', difficulty:'Beginner', time:'8 min',
+    desc:'When your swing feels off, this drill rebuilds rhythm from scratch. Start with half swings, add length, then return to normal. The golf equivalent of rebooting.',
+    steps:[
+      {label:'Half swings only \u2014 smooth and short', game:'Long', speed:'Level 1', tone:'Piano', interval:'5s', reps:8, customRatio:3.0, customTempo:1.60},
+      {label:'Three-quarter swings \u2014 extend slowly', game:'Long', speed:'Level 1', tone:'Piano', interval:'3s', reps:8, customRatio:3.0, customTempo:1.60},
+      {label:'Full but slow \u2014 no forcing', game:'Long', speed:'Level 2', tone:'Piano', interval:'0s', reps:8, customRatio:3.0, customTempo:1.47},
+      {label:'Normal tempo \u2014 rhythm restored', game:'Long', speed:'Level 3', tone:'Piano', interval:'0s', reps:10, customRatio:3.0, customTempo:1.33}
+    ], restBetween:5
+  },
+  {
+    id:20, name:'9-Hole Mental Sim', difficulty:'Advanced', time:'15 min',
+    desc:'Simulate playing 9 holes on the range. Alternate clubs and tempos as if you\'re playing a real round. Builds on-course mental focus.',
+    steps:[
+      {label:'Hole 1: Tee shot \u2014 driver tempo', game:'Long', speed:'Level 4', tone:'Piano', interval:'0s', reps:1, customRatio:3.0, customTempo:1.20},
+      {label:'Hole 1: Approach \u2014 mid-iron', game:'Long', speed:'Level 3', tone:'Piano', interval:'0s', reps:1, customRatio:3.0, customTempo:1.33},
+      {label:'Hole 2: Par 3 \u2014 iron off the tee', game:'Long', speed:'Level 3', tone:'Piano', interval:'0s', reps:1, customRatio:3.0, customTempo:1.33},
+      {label:'Hole 3: Tee shot \u2014 smooth driver', game:'Long', speed:'Level 4', tone:'Piano', interval:'0s', reps:1, customRatio:3.0, customTempo:1.20},
+      {label:'Hole 3: Pitch to the green \u2014 50 yards', game:'Short', speed:'Level 3', tone:'Piano', interval:'0s', reps:1, customRatio:2.0, customTempo:1.00},
+      {label:'Hole 4: Tee shot \u2014 fairway wood', game:'Long', speed:'Level 3', tone:'Piano', interval:'0s', reps:1, customRatio:3.0, customTempo:1.33},
+      {label:'Hole 4: Approach \u2014 long iron', game:'Long', speed:'Level 3', tone:'Piano', interval:'0s', reps:1, customRatio:3.0, customTempo:1.33},
+      {label:'Hole 5: Par 3 \u2014 wedge', game:'Short', speed:'Level 3', tone:'Piano', interval:'0s', reps:1, customRatio:2.0, customTempo:1.00},
+      {label:'Hole 6: Tee shot \u2014 driver, let it rip', game:'Long', speed:'Level 5', tone:'Piano', interval:'0s', reps:1, customRatio:3.0, customTempo:1.07},
+      {label:'Hole 6: Short approach \u2014 chip & run', game:'Short', speed:'Level 1', tone:'Piano', interval:'0s', reps:1, customRatio:2.0, customTempo:1.20},
+      {label:'Hole 7: Tee shot \u2014 conservative', game:'Long', speed:'Level 3', tone:'Piano', interval:'0s', reps:1, customRatio:3.0, customTempo:1.33},
+      {label:'Hole 7: Full wedge approach', game:'Long', speed:'Level 3', tone:'Piano', interval:'0s', reps:1, customRatio:3.0, customTempo:1.33},
+      {label:'Hole 8: Par 3 \u2014 mid-iron to the center', game:'Long', speed:'Level 3', tone:'Piano', interval:'0s', reps:1, customRatio:3.0, customTempo:1.33},
+      {label:'Hole 9: Tee shot \u2014 smooth driver', game:'Long', speed:'Level 4', tone:'Piano', interval:'0s', reps:1, customRatio:3.0, customTempo:1.20},
+      {label:'Hole 9: Final approach \u2014 stick it close', game:'Long', speed:'Level 3', tone:'Piano', interval:'0s', reps:1, customRatio:3.0, customTempo:1.33}
+    ], restBetween:5
   }
-});
+];
 
-// ===================== RATIO MODAL =====================
-function openRatioModal() {
-  var slider = document.getElementById('ratioSlider');
-  slider.value = Math.round(state.customRatio * 10);
-  updateRatioDisplay(state.customRatio);
-  document.getElementById('ratioModal').classList.add('open');
+function renderDrills() {
+  let html = '';
+  DRILLS.forEach(d => {
+    let badgeClass = d.difficulty === 'Beginner' ? 'badge-beginner' : d.difficulty === 'Intermediate' ? 'badge-intermediate' : 'badge-advanced';
+    let totalReps = d.steps.reduce((s, st) => s + st.reps, 0);
+    html += `<div class="drill-card" onclick="openDrillDetail(${d.id})">
+      <div class="drill-header">
+        <h3>${d.name}</h3>
+        <span class="drill-badge ${badgeClass}">${d.difficulty}</span>
+      </div>
+      <div class="drill-meta">${d.time} \u2022 ${d.steps.length} steps \u2022 ${totalReps} reps</div>
+      <div class="drill-desc">${d.desc.substring(0, 80)}...</div>
+    </div>`;
+  });
+  document.getElementById('drillList').innerHTML = html;
 }
 
-function updateRatioDisplay(val) {
-  document.getElementById('ratioDisplay').textContent = 'Ratio: ' + val.toFixed(1) + ':1';
+function openDrillDetail(id) {
+  let d = DRILLS.find(x => x.id === id);
+  if (!d) return;
+  let totalReps = d.steps.reduce((s, st) => s + st.reps, 0);
+  let badgeClass = d.difficulty === 'Beginner' ? 'badge-beginner' : d.difficulty === 'Intermediate' ? 'badge-intermediate' : 'badge-advanced';
+
+  let stepsHtml = '';
+  d.steps.forEach((st, i) => {
+    let v = getTempoValues(st.game, st.speed, st.customRatio || 3.0, st.customTempo || 1.33);
+    stepsHtml += `<div class="drill-step-item">
+      <div class="drill-step-num">${i + 1}</div>
+      <div class="drill-step-text"><strong>${st.label}</strong><br>${st.game} \u2022 ${v.tempo.toFixed(2)}s \u2022 ${v.ratio.toFixed(1)}:1 \u2022 ${st.reps} reps${st.interval && st.interval !== '0s' ? ' \u2022 ' + st.interval + ' delay' : ''}</div>
+    </div>`;
+  });
+
+  document.getElementById('drillDetail').innerHTML = `
+    <button class="drill-detail-back" onclick="closeDrillDetail()">\u2190 Back to Drills</button>
+    <h2 class="drill-detail-title">${d.name}</h2>
+    <div class="drill-detail-badges"><span class="drill-badge ${badgeClass}">${d.difficulty}</span></div>
+    <p class="drill-detail-desc">${d.desc}</p>
+    <div class="drill-stats-row">
+      <div class="drill-stat-box"><div class="val">${d.steps.length}</div><div class="lbl">Steps</div></div>
+      <div class="drill-stat-box"><div class="val">${totalReps}</div><div class="lbl">Total Reps</div></div>
+      <div class="drill-stat-box"><div class="val">${d.time}</div><div class="lbl">Est. Time</div></div>
+    </div>
+    <div class="drill-steps-list">${stepsHtml}</div>
+    <button class="start-drill-btn" onclick="startDrill(${d.id})">Start Drill</button>`;
+
+  document.getElementById('drillList').style.display = 'none';
+  document.getElementById('drillDetail').classList.add('active');
+  document.getElementById('drillPlayer').classList.remove('active');
 }
 
-document.getElementById('ratioSlider').addEventListener('input', function(e) {
-  updateRatioDisplay(e.target.value / 10);
-});
+function closeDrillDetail() {
+  document.getElementById('drillDetail').classList.remove('active');
+  document.getElementById('drillList').style.display = '';
+}
 
-document.getElementById('ratioCancelBtn').addEventListener('click', function() {
-  document.getElementById('ratioModal').classList.remove('open');
-});
+async function startDrill(id) {
+  let d = DRILLS.find(x => x.id === id);
+  if (!d) return;
 
-document.getElementById('ratioSaveBtn').addEventListener('click', function() {
-  state.customRatio = document.getElementById('ratioSlider').value / 10;
-  state.selectedGame = 'Custom';
-  updateCustomGame();
-  resetPlayback();
-  document.getElementById('ratioModal').classList.remove('open');
-});
+  // Stop home playback if running
+  if (S.playing) stopPlay();
 
-document.getElementById('ratioModal').addEventListener('click', function(e) {
-  if (e.target === e.currentTarget) {
-    e.currentTarget.classList.remove('open');
+  let step0 = d.steps[0];
+  drillState = {
+    drill: d,
+    playing: true,
+    currentStep: 0,
+    currentRep: 0,
+    targetReps: step0.reps,
+    tone: step0.tone || S.tone,
+    loopDelay: parseFloat(step0.interval) || 0,
+    tempoValues: getTempoValues(step0.game, step0.speed, step0.customRatio || 3.0, step0.customTempo || 1.33),
+    totalSwings: 0,
+    startTime: Date.now(),
+    timeout: null,
+    restTimeout: null
+  };
+
+  document.getElementById('drillDetail').classList.remove('active');
+  document.getElementById('drillList').style.display = 'none';
+  document.getElementById('drillPlayer').classList.add('active');
+
+  await preloadTone(drillState.tone);
+  // Preload all unique tones used in drill
+  let drillTones = new Set(d.steps.map(s => s.tone).filter(Boolean));
+  for (let t of drillTones) await preloadTone(t);
+  updateDrillPlayerUI();
+  runDrillStep();
+}
+
+function runDrillStep() {
+  if (!drillState || !drillState.playing) return;
+  let d = drillState.drill;
+  let step = d.steps[drillState.currentStep];
+  drillState.currentRep = 0;
+  drillState.targetReps = step.reps;
+  drillState.loopDelay = parseFloat(step.interval) || 0;
+  drillState.tone = step.tone || S.tone;
+  drillState.tempoValues = getTempoValues(step.game, step.speed, step.customRatio || 3.0, step.customTempo || 1.33);
+  updateDrillPlayerUI();
+
+  drillSwingCycle(() => {
+    // Step complete
+    drillState.totalSwings += step.reps;
+    drillState.currentStep++;
+
+    if (drillState.currentStep >= d.steps.length) {
+      // Drill complete!
+      drillState.playing = false;
+      showDrillComplete();
+      return;
+    }
+
+    // Rest between steps
+    if (d.restBetween > 0) {
+      showDrillRest(d.restBetween, () => {
+        if (!drillState || !drillState.playing) return;
+        runDrillStep();
+      });
+    } else {
+      runDrillStep();
+    }
+  });
+}
+
+function updateDrillPlayerUI() {
+  if (!drillState) return;
+  let d = drillState.drill;
+  let step = d.steps[drillState.currentStep] || d.steps[d.steps.length - 1];
+  let v = drillState.tempoValues;
+  let totalReps = d.steps.reduce((s, st) => s + st.reps, 0);
+  let doneReps = 0;
+  for (let i = 0; i < drillState.currentStep; i++) doneReps += d.steps[i].reps;
+  doneReps += drillState.currentRep;
+  let pct = totalReps > 0 ? Math.round(doneReps / totalReps * 100) : 0;
+
+  document.getElementById('drillPlayer').innerHTML = `
+    <div class="drill-player-step">Step ${drillState.currentStep + 1} of ${d.steps.length}</div>
+    <div class="drill-progress-bar"><div class="drill-progress-fill" style="width:${pct}%"></div></div>
+    <h2 class="drill-player-instruction">${step.label}</h2>
+    <div class="drill-player-tempo-info">
+      <div class="ti"><div class="tv">${v.back.toFixed(2)}s</div><div class="tl">Back</div></div>
+      <div class="ti"><div class="tv">${v.down.toFixed(2)}s</div><div class="tl">Down</div></div>
+      <div class="ti"><div class="tv">${v.ratio.toFixed(1)}:1</div><div class="tl">Ratio</div></div>
+      <div class="ti"><div class="tv">${v.tempo.toFixed(2)}s</div><div class="tl">Tempo</div></div>
+    </div>
+    <div class="drill-player-rep">${drillState.currentRep} / ${drillState.targetReps}</div>
+    <div class="drill-player-sublabel">Reps completed \u2022 ${pct}% total</div>
+    <button class="drill-stop-btn" onclick="stopDrill()">Stop Drill</button>`;
+}
+
+function showDrillRest(seconds, onDone) {
+  let remaining = seconds;
+  let d = drillState.drill;
+  let nextStep = d.steps[drillState.currentStep];
+  function tick() {
+    if (!drillState || !drillState.playing) return;
+    let totalReps = d.steps.reduce((s, st) => s + st.reps, 0);
+    let doneReps = 0;
+    for (let i = 0; i < drillState.currentStep; i++) doneReps += d.steps[i].reps;
+    let pct = totalReps > 0 ? Math.round(doneReps / totalReps * 100) : 0;
+    document.getElementById('drillPlayer').innerHTML = `
+      <div class="drill-player-step">Rest Period</div>
+      <div class="drill-progress-bar"><div class="drill-progress-fill" style="width:${pct}%"></div></div>
+      <div class="drill-player-rest">${remaining}s</div>
+      <div class="drill-player-sublabel">Next: ${nextStep ? nextStep.label : 'Complete'}</div>
+      <div class="drill-player-settings">Step ${drillState.currentStep + 1} of ${d.steps.length} coming up</div>
+      <button class="drill-stop-btn" onclick="stopDrill()">Stop Drill</button>`;
+    if (remaining <= 0) { onDone(); return; }
+    remaining--;
+    drillState.restTimeout = setTimeout(tick, 1000);
   }
-});
-
-// ===================== TEMPO MODAL =====================
-function openTempoModal() {
-  var slider = document.getElementById('tempoSlider');
-  slider.value = Math.round(state.customTempo * 100);
-  updateTempoDisplay(state.customTempo);
-  document.getElementById('tempoModal').classList.add('open');
+  tick();
 }
 
-function updateTempoDisplay(val) {
-  document.getElementById('tempoDisplay').textContent = 'Tempo: ' + val.toFixed(2) + ' sec';
+function showDrillComplete() {
+  let dur = Math.round((Date.now() - drillState.startTime) / 1000);
+  let d = drillState.drill;
+  document.getElementById('drillPlayer').innerHTML = `
+    <div class="drill-progress-bar"><div class="drill-progress-fill" style="width:100%"></div></div>
+    <div class="drill-complete-title">\u2705 Drill Complete!</div>
+    <div class="drill-complete-sub">${d.name}</div>
+    <div class="drill-stats-row">
+      <div class="drill-stat-box"><div class="val">${drillState.totalSwings}</div><div class="lbl">Swings</div></div>
+      <div class="drill-stat-box"><div class="val">${formatDuration(dur)}</div><div class="lbl">Duration</div></div>
+      <div class="drill-stat-box"><div class="val">${d.steps.length}</div><div class="lbl">Steps</div></div>
+    </div>
+    <button class="drill-done-btn" onclick="finishDrill()">Done</button>`;
+
+  logSession({ date: new Date().toISOString(), swings: drillState.totalSwings, duration: dur, game: 'Mixed', speed: 'Drill', tone: drillState.tone, interval: '-', type: 'drill', drillName: d.name });
 }
 
-document.getElementById('tempoSlider').addEventListener('input', function(e) {
-  updateTempoDisplay(e.target.value / 100);
-});
-
-document.getElementById('tempoCancelBtn').addEventListener('click', function() {
-  document.getElementById('tempoModal').classList.remove('open');
-});
-
-document.getElementById('tempoSaveBtn').addEventListener('click', function() {
-  state.customTempo = document.getElementById('tempoSlider').value / 100;
-  state.selectedSpeed = 'Custom';
-  updateCustomSpeed();
-  resetPlayback();
-  document.getElementById('tempoModal').classList.remove('open');
-});
-
-document.getElementById('tempoModal').addEventListener('click', function(e) {
-  if (e.target === e.currentTarget) {
-    e.currentTarget.classList.remove('open');
+function stopDrill() {
+  if (!drillState) return;
+  drillState.playing = false;
+  if (drillState.timeout) clearTimeout(drillState.timeout);
+  if (drillState.restTimeout) clearTimeout(drillState.restTimeout);
+  let dur = Math.round((Date.now() - drillState.startTime) / 1000);
+  if (drillState.totalSwings + drillState.currentRep > 0) {
+    logSession({ date: new Date().toISOString(), swings: drillState.totalSwings + drillState.currentRep, duration: dur, game: 'Mixed', speed: 'Drill', tone: drillState.tone, interval: '-', type: 'drill', drillName: drillState.drill.name + ' (partial)' });
   }
-});
+  drillState = null;
+  document.getElementById('drillPlayer').classList.remove('active');
+  document.getElementById('drillList').style.display = '';
+}
 
-// ===================== INIT =====================
-updateTimes();
-updateMenuValues();
-updatePlayButton();
+function finishDrill() {
+  drillState = null;
+  document.getElementById('drillPlayer').classList.remove('active');
+  document.getElementById('drillList').style.display = '';
+}
+
+// ==================== HISTORY ====================
+function logSession(session) {
+  let history = JSON.parse(localStorage.getItem('gpt_history') || '[]');
+  history.unshift(session);
+  localStorage.setItem('gpt_history', JSON.stringify(history));
+}
+
+function renderHistory() {
+  let history = JSON.parse(localStorage.getItem('gpt_history') || '[]');
+
+  // Quick stats
+  let totalSessions = history.length;
+  let totalSwings = history.reduce((s, h) => s + h.swings, 0);
+  let totalTime = history.reduce((s, h) => s + h.duration, 0);
+
+  // Streak
+  let streak = 0;
+  if (history.length > 0) {
+    let days = new Set();
+    history.forEach(h => { days.add(new Date(h.date).toDateString()); });
+    let today = new Date();
+    for (let i = 0; i < 365; i++) {
+      let d = new Date(today);
+      d.setDate(d.getDate() - i);
+      if (days.has(d.toDateString())) { streak++; } else { break; }
+    }
+  }
+
+  document.getElementById('historyQuickStats').innerHTML = `
+    <div class="history-stats">
+      <div class="history-stat-card"><div class="val">${totalSessions}</div><div class="lbl">Sessions</div></div>
+      <div class="history-stat-card"><div class="val">${totalSwings}</div><div class="lbl">Total Swings</div></div>
+      <div class="history-stat-card"><div class="val">${formatDuration(totalTime)}</div><div class="lbl">Total Time</div></div>
+      <div class="history-stat-card"><div class="val">${streak}</div><div class="lbl">Day Streak</div></div>
+    </div>`;
+
+  let listHtml = '';
+  if (history.length === 0) {
+    listHtml = '<div class="empty-state"><div class="icon">\u26F3</div><p>No practice sessions yet.<br>Start swinging to build your history!</p></div>';
+  } else {
+    history.forEach(h => {
+      let d = new Date(h.date);
+      let dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
+      let label = h.type === 'drill' ? h.drillName : 'Free Play';
+      listHtml += `<div class="session-card">
+        <div class="session-date">${dateStr}</div>
+        <div class="session-main"><h3>${label}</h3><span class="dur">${formatDuration(h.duration)}</span></div>
+        <div class="session-detail">${h.swings} swings \u2022 ${h.game} \u2022 ${h.speed} \u2022 ${h.tone}</div>
+      </div>`;
+    });
+  }
+  document.getElementById('sessionList').innerHTML = listHtml;
+}
+
+function showDetailedStats() {
+  let history = JSON.parse(localStorage.getItem('gpt_history') || '[]');
+  let totalSessions = history.length;
+  let totalSwings = history.reduce((s, h) => s + h.swings, 0);
+  let totalTime = history.reduce((s, h) => s + h.duration, 0);
+  let avgDur = totalSessions ? Math.round(totalTime / totalSessions) : 0;
+  let avgSwings = totalSessions ? Math.round(totalSwings / totalSessions) : 0;
+
+  // Last 7 days
+  let now = new Date();
+  let weekAgo = new Date(now); weekAgo.setDate(weekAgo.getDate() - 7);
+  let weekSessions = history.filter(h => new Date(h.date) >= weekAgo);
+  let weekSwings = weekSessions.reduce((s, h) => s + h.swings, 0);
+  let weekTime = weekSessions.reduce((s, h) => s + h.duration, 0);
+
+  document.getElementById('historyQuickStats').style.display = 'none';
+  document.querySelector('#panelHistory .detailed-stats-btn').style.display = 'none';
+  document.querySelector('#panelHistory .section-title').style.display = 'none';
+  document.getElementById('sessionList').style.display = 'none';
+
+  document.getElementById('statsDetail').innerHTML = `
+    <button class="drill-detail-back" onclick="closeDetailedStats()">\u2190 Back</button>
+    <h2 style="font-size:22px;margin:8px 0 16px">Detailed Stats</h2>
+    <div class="stats-section">
+      <h3>Overview</h3>
+      <div class="history-stats">
+        <div class="history-stat-card"><div class="val">${totalSessions}</div><div class="lbl">Total Sessions</div></div>
+        <div class="history-stat-card"><div class="val">${totalSwings}</div><div class="lbl">Total Swings</div></div>
+        <div class="history-stat-card"><div class="val">${formatDuration(totalTime)}</div><div class="lbl">Practice Time</div></div>
+      </div>
+    </div>
+    <div class="stats-section">
+      <h3>Averages</h3>
+      <div class="history-stats">
+        <div class="history-stat-card"><div class="val">${formatDuration(avgDur)}</div><div class="lbl">Avg Duration</div></div>
+        <div class="history-stat-card"><div class="val">${avgSwings}</div><div class="lbl">Avg Swings/Session</div></div>
+      </div>
+    </div>
+    <div class="stats-section">
+      <h3>Last 7 Days</h3>
+      <div class="history-stats">
+        <div class="history-stat-card"><div class="val">${weekSessions.length}</div><div class="lbl">Sessions</div></div>
+        <div class="history-stat-card"><div class="val">${weekSwings}</div><div class="lbl">Swings</div></div>
+        <div class="history-stat-card"><div class="val">${formatDuration(weekTime)}</div><div class="lbl">Time</div></div>
+      </div>
+    </div>`;
+  document.getElementById('statsDetail').classList.add('active');
+}
+
+function closeDetailedStats() {
+  document.getElementById('statsDetail').classList.remove('active');
+  document.getElementById('historyQuickStats').style.display = '';
+  document.querySelector('#panelHistory .detailed-stats-btn').style.display = '';
+  document.querySelector('#panelHistory .section-title').style.display = '';
+  document.getElementById('sessionList').style.display = '';
+}
+
+function formatDuration(sec) {
+  if (sec < 60) return sec + 's';
+  let m = Math.floor(sec / 60);
+  let s = sec % 60;
+  return m + 'm ' + (s > 0 ? s + 's' : '');
+}
+
+// ==================== SETTINGS ====================
+function loadSettingsObj() {
+  return JSON.parse(localStorage.getItem('gpt_settings') || '{"sound":true,"haptic":true}');
+}
+function saveSetting(key, val) {
+  let s = loadSettingsObj();
+  s[key] = val;
+  localStorage.setItem('gpt_settings', JSON.stringify(s));
+}
+function loadSettings() {
+  let s = loadSettingsObj();
+  document.getElementById('settingSound').checked = s.sound !== false;
+  document.getElementById('settingHaptic').checked = s.haptic !== false;
+}
+function clearHistory() {
+  localStorage.removeItem('gpt_history');
+  renderHistory();
+}
+function clearPresets() {
+  localStorage.removeItem('gpt_userPresets');
+  renderPresets();
+}
+
+// ==================== INIT ====================
+updateDisplay();
+renderDrills();
+renderPresets();
+renderHistory();
+loadSettings();
 </script>
 </body>
 </html>
