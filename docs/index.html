@@ -7,10 +7,34 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { overflow: hidden; background: #000; font-family: 'Segoe UI', Arial, sans-serif; }
+
+    #loading {
+      position: fixed; inset: 0; z-index: 20;
+      background: linear-gradient(135deg, #1a0a2e 0%, #16213e 50%, #0f3460 100%);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      color: #fff;
+    }
+    #loading h1 {
+      font-size: 38px; margin-bottom: 24px;
+      background: linear-gradient(135deg, #FFD700, #FF8C00);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    #loading .bar-bg {
+      width: 320px; height: 8px; background: rgba(255,255,255,0.15);
+      border-radius: 4px; overflow: hidden;
+    }
+    #loading .bar-fill {
+      height: 100%; width: 0%; border-radius: 4px;
+      background: linear-gradient(90deg, #FFD700, #FF8C00);
+      transition: width 0.15s;
+    }
+    #loading .status { margin-top: 12px; font-size: 13px; opacity: 0.5; }
+
     #blocker {
       position: fixed; inset: 0; z-index: 10;
-      background: rgba(0, 0, 0, 0.65);
-      display: flex; align-items: center; justify-content: center;
+      background: rgba(0, 0, 0, 0.55);
+      display: none; align-items: center; justify-content: center;
       cursor: pointer;
     }
     #instructions {
@@ -38,6 +62,11 @@
   </style>
 </head>
 <body>
+  <div id="loading">
+    <h1>Fantasy Town Explorer</h1>
+    <div class="bar-bg"><div class="bar-fill" id="loadBar"></div></div>
+    <div class="status" id="loadStatus">Loading models...</div>
+  </div>
   <div id="blocker">
     <div id="instructions">
       <h1>Fantasy Town Explorer</h1>
@@ -64,35 +93,22 @@
   <script type="module">
     import * as THREE from 'three';
     import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
-    // ── Color Palette ──────────────────────────────────────────
-    const C = {
-      grass:      0x4a7c3f,
-      dirt:       0x8B7355,
-      stone:      0x808080,
-      stoneWall:  0x696969,
-      woodDark:   0x5C4033,
-      woodLight:  0x8B6914,
-      roofRed:    0x8B2020,
-      roofBlue:   0x2F4F6F,
-      roofPurple: 0x5B2080,
-      roofGreen:  0x2E6B3A,
-      water:      0x3a7faa,
-      treeGreen:  0x2E8B57,
-      treeDark:   0x1A5E2A,
-      treeTrunk:  0x654321,
-      castle:     0x778899,
-      gold:       0xDAA520,
-      torch:      0xFF6600,
-      window:     0xFFD080,
-    };
+    // ── Constants ─────────────────────────────────────────────
+    const S = 3;          // scale for all Kenney models (1 tile = 3m)
+    const PI = Math.PI;
+    const HALF_PI = PI / 2;
 
-    // ── Scene Setup ────────────────────────────────────────────
+    // Wall facing rotations (model default faces -X)
+    const FACE = { W: 0, N: HALF_PI, E: PI, S: -HALF_PI };
+
+    // ── Scene Setup ───────────────────────────────────────────
     const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0xb0a0c8, 0.009);
+    scene.fog = new THREE.FogExp2(0xb0a0c8, 0.006);
 
-    const camera = new THREE.PerspectiveCamera(75, innerWidth / innerHeight, 0.1, 500);
-    camera.position.set(0, 1.6, 28);
+    const camera = new THREE.PerspectiveCamera(75, innerWidth / innerHeight, 0.1, 600);
+    camera.position.set(0, 1.6, 35);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(innerWidth, innerHeight);
@@ -103,24 +119,24 @@
     renderer.toneMappingExposure = 1.0;
     document.body.appendChild(renderer.domElement);
 
-    // ── Lighting ───────────────────────────────────────────────
-    scene.add(new THREE.HemisphereLight(0x87CEEB, 0x3a6b3a, 0.5));
-    scene.add(new THREE.AmbientLight(0x404060, 0.3));
+    // ── Lighting ──────────────────────────────────────────────
+    scene.add(new THREE.HemisphereLight(0x87CEEB, 0x3a6b3a, 0.6));
+    scene.add(new THREE.AmbientLight(0x404060, 0.4));
 
-    const sun = new THREE.DirectionalLight(0xFFE4B5, 1.3);
+    const sun = new THREE.DirectionalLight(0xFFE4B5, 1.4);
     sun.position.set(50, 80, 30);
     sun.castShadow = true;
     sun.shadow.mapSize.set(2048, 2048);
     sun.shadow.camera.near = 0.5;
-    sun.shadow.camera.far = 200;
-    sun.shadow.camera.left = -60;
-    sun.shadow.camera.right = 60;
-    sun.shadow.camera.top = 60;
-    sun.shadow.camera.bottom = -60;
+    sun.shadow.camera.far = 250;
+    const sc = 80;
+    sun.shadow.camera.left = -sc;
+    sun.shadow.camera.right = sc;
+    sun.shadow.camera.top = sc;
+    sun.shadow.camera.bottom = -sc;
     scene.add(sun);
 
-    // ── Sky Dome ───────────────────────────────────────────────
-    const skyGeo = new THREE.SphereGeometry(300, 32, 15);
+    // ── Sky Dome ──────────────────────────────────────────────
     const skyMat = new THREE.ShaderMaterial({
       uniforms: {
         topColor:    { value: new THREE.Color(0x0055aa) },
@@ -131,8 +147,7 @@
       vertexShader: `
         varying vec3 vWorldPos;
         void main() {
-          vec4 wp = modelMatrix * vec4(position, 1.0);
-          vWorldPos = wp.xyz;
+          vWorldPos = (modelMatrix * vec4(position, 1.0)).xyz;
           gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
         }`,
       fragmentShader: `
@@ -145,426 +160,427 @@
         }`,
       side: THREE.BackSide,
     });
-    scene.add(new THREE.Mesh(skyGeo, skyMat));
+    scene.add(new THREE.Mesh(new THREE.SphereGeometry(400, 32, 15), skyMat));
 
-    // ── Helper: materials ──────────────────────────────────────
+    // ── Ground ────────────────────────────────────────────────
     const mat = (color, opts = {}) => new THREE.MeshLambertMaterial({ color, ...opts });
-    const matPhong = (color, opts = {}) => new THREE.MeshPhongMaterial({ color, ...opts });
 
-    // ── Ground ─────────────────────────────────────────────────
-    const groundGeo = new THREE.PlaneGeometry(200, 200, 60, 60);
+    const groundGeo = new THREE.PlaneGeometry(300, 300, 80, 80);
     const verts = groundGeo.attributes.position.array;
-    for (let i = 2; i < verts.length; i += 3) {
-      verts[i] += (Math.random() - 0.5) * 0.4;
-    }
-    groundGeo.rotateX(-Math.PI / 2);
+    for (let i = 2; i < verts.length; i += 3) verts[i] += (Math.random() - 0.5) * 0.35;
+    groundGeo.rotateX(-PI / 2);
     groundGeo.computeVertexNormals();
-    const ground = new THREE.Mesh(groundGeo, mat(C.grass));
+    const ground = new THREE.Mesh(groundGeo, mat(0x4a7c3f));
     ground.receiveShadow = true;
     scene.add(ground);
 
-    // Cobblestone path
-    const pathGeo = new THREE.PlaneGeometry(4, 60);
-    pathGeo.rotateX(-Math.PI / 2);
-    const path = new THREE.Mesh(pathGeo, mat(C.dirt));
-    path.position.set(0, 0.02, 0);
-    path.receiveShadow = true;
-    scene.add(path);
-
-    // Side path
-    const sidePath = new THREE.Mesh(
-      new THREE.PlaneGeometry(30, 3).rotateX(-Math.PI / 2),
-      mat(C.dirt)
-    );
-    sidePath.position.set(0, 0.02, 5);
-    sidePath.receiveShadow = true;
-    scene.add(sidePath);
-
-    // ── Building Generator ─────────────────────────────────────
-    function createBuilding(x, z, w, d, h, wallColor, roofColor, rotY = 0) {
-      const g = new THREE.Group();
-
-      // Walls
-      const walls = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat(wallColor));
-      walls.position.y = h / 2;
-      walls.castShadow = true;
-      walls.receiveShadow = true;
-      g.add(walls);
-
-      // Roof (pyramid)
-      const roofR = Math.max(w, d) * 0.78;
-      const roofH = h * 0.55;
-      const roof = new THREE.Mesh(new THREE.ConeGeometry(roofR, roofH, 4), mat(roofColor));
-      roof.position.y = h + roofH / 2;
-      roof.rotation.y = Math.PI / 4;
-      roof.castShadow = true;
-      g.add(roof);
-
-      // Door
-      const door = new THREE.Mesh(
-        new THREE.BoxGeometry(0.8, 1.6, 0.1),
-        mat(C.woodDark)
-      );
-      door.position.set(0, 0.8, d / 2 + 0.05);
-      g.add(door);
-
-      // Windows (emissive glow)
-      const winMat = new THREE.MeshLambertMaterial({
-        color: C.window, emissive: 0xFFAA00, emissiveIntensity: 0.4,
-      });
-      const winGeo = new THREE.BoxGeometry(0.5, 0.5, 0.1);
-      const winPositions = [];
-      if (w > 2.5) {
-        winPositions.push([-w * 0.3, h * 0.6, d / 2 + 0.05]);
-        winPositions.push([ w * 0.3, h * 0.6, d / 2 + 0.05]);
-      }
-      winPositions.push([ w / 2 + 0.05, h * 0.6, 0]);
-      winPositions.push([-w / 2 - 0.05, h * 0.6, 0]);
-      winPositions.forEach(([wx, wy, wz]) => {
-        const win = new THREE.Mesh(winGeo, winMat);
-        win.position.set(wx, wy, wz);
-        if (Math.abs(wx) === w / 2 + 0.05) win.rotation.y = Math.PI / 2;
-        g.add(win);
-      });
-
-      g.position.set(x, 0, z);
-      g.rotation.y = rotY;
-      scene.add(g);
-      return g;
-    }
-
-    // ── Castle Generator ───────────────────────────────────────
-    function createCastle(x, z) {
-      const g = new THREE.Group();
-      const sMat = mat(C.castle);
-
-      // Main keep
-      const keep = new THREE.Mesh(new THREE.BoxGeometry(10, 12, 10), sMat);
-      keep.position.y = 6;
-      keep.castShadow = true;
-      keep.receiveShadow = true;
-      g.add(keep);
-
-      // Corner towers
-      [[-5.5, -5.5], [-5.5, 5.5], [5.5, -5.5], [5.5, 5.5]].forEach(([tx, tz]) => {
-        const tower = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.8, 16, 8), sMat);
-        tower.position.set(tx, 8, tz);
-        tower.castShadow = true;
-        g.add(tower);
-
-        const cap = new THREE.Mesh(new THREE.ConeGeometry(2.2, 4, 8), mat(C.roofBlue));
-        cap.position.set(tx, 18, tz);
-        cap.castShadow = true;
-        g.add(cap);
-      });
-
-      // Crenellations
-      for (let i = -4; i <= 4; i += 1.6) {
-        [[-5, i], [5, i], [i, -5], [i, 5]].forEach(([cx, cz]) => {
-          const merlon = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.4, 0.8), sMat);
-          merlon.position.set(cx, 12.7, cz);
-          g.add(merlon);
-        });
-      }
-
-      // Gate
-      const gate = new THREE.Mesh(
-        new THREE.BoxGeometry(3, 5, 1),
-        mat(0x1a1a1a)
-      );
-      gate.position.set(0, 2.5, 5.3);
-      g.add(gate);
-
-      // Gate arch
-      const arch = new THREE.Mesh(
-        new THREE.TorusGeometry(1.5, 0.3, 8, 10, Math.PI),
-        sMat
-      );
-      arch.position.set(0, 5, 5.3);
-      arch.rotation.y = Math.PI;
-      g.add(arch);
-
-      // Castle windows
-      const cWinMat = new THREE.MeshLambertMaterial({
-        color: C.window, emissive: 0xFFAA00, emissiveIntensity: 0.3,
-      });
-      [[3, 8, 5.05], [-3, 8, 5.05], [3, 5, 5.05], [-3, 5, 5.05],
-       [5.05, 8, 2], [5.05, 8, -2], [-5.05, 8, 2], [-5.05, 8, -2]].forEach(([wx, wy, wz]) => {
-        const w = new THREE.Mesh(new THREE.BoxGeometry(0.6, 1.0, 0.1), cWinMat);
-        w.position.set(wx, wy, wz);
-        if (Math.abs(wx) > 5) w.rotation.y = Math.PI / 2;
-        g.add(w);
-      });
-
-      // Banner
-      const banner = new THREE.Mesh(
-        new THREE.PlaneGeometry(2, 3),
-        new THREE.MeshLambertMaterial({ color: 0x8B0000, side: THREE.DoubleSide })
-      );
-      banner.position.set(0, 9, 5.15);
-      g.add(banner);
-
-      g.position.set(x, 0, z);
-      scene.add(g);
-      return g;
-    }
-
-    // ── Tree Generator ─────────────────────────────────────────
-    function createTree(x, z, type = 'pine', scale = 1) {
-      const g = new THREE.Group();
-
-      const trunk = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.15 * scale, 0.25 * scale, 2 * scale, 6),
-        mat(C.treeTrunk)
-      );
-      trunk.position.y = scale;
-      trunk.castShadow = true;
-      g.add(trunk);
-
-      if (type === 'pine') {
-        const layers = [
-          { r: 1.8, h: 2.5, y: 3.0 },
-          { r: 1.4, h: 2.0, y: 4.5 },
-          { r: 0.9, h: 1.5, y: 5.7 },
-        ];
-        layers.forEach(l => {
-          const leaf = new THREE.Mesh(
-            new THREE.ConeGeometry(l.r * scale, l.h * scale, 7),
-            mat(C.treeGreen, { flatShading: true })
-          );
-          leaf.position.y = l.y * scale;
-          leaf.castShadow = true;
-          g.add(leaf);
-        });
-      } else {
-        // Oak - blobby canopy
-        const canopy = new THREE.Mesh(
-          new THREE.IcosahedronGeometry(2 * scale, 1),
-          mat(C.treeDark, { flatShading: true })
-        );
-        canopy.position.y = 3.5 * scale;
-        canopy.castShadow = true;
-        g.add(canopy);
-      }
-
-      g.position.set(x, 0, z);
-      scene.add(g);
-      return g;
-    }
-
-    // ── Torch Generator ────────────────────────────────────────
-    function createTorch(x, y, z) {
-      const stick = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.05, 0.05, 0.8, 5),
-        mat(C.woodDark)
-      );
-      stick.position.set(x, y, z);
-      scene.add(stick);
-
-      const light = new THREE.PointLight(C.torch, 1.0, 12, 2);
-      light.position.set(x, y + 0.5, z);
-      scene.add(light);
-
-      // Flame (small glowing sphere)
-      const flame = new THREE.Mesh(
-        new THREE.SphereGeometry(0.1, 6, 6),
-        new THREE.MeshBasicMaterial({ color: 0xFF8800 })
-      );
-      flame.position.set(x, y + 0.45, z);
-      scene.add(flame);
-
-      return { light, flame };
-    }
-
-    // ── Place Town Elements ────────────────────────────────────
-
-    // Castle at the far end
-    createCastle(0, -25);
-
-    // Buildings - left side of path
-    createBuilding(-6,  15, 4, 4, 3.5, C.woodLight, C.roofRed);
-    createBuilding(-7,   8, 5, 4, 4,   C.stone,     C.roofBlue);
-    createBuilding(-6,   0, 3.5, 3.5, 3, C.woodLight, C.roofPurple);
-    createBuilding(-8,  -6, 6, 5, 4.5, C.stone,     C.roofRed);
-    createBuilding(-6, -14, 4, 3.5, 3, C.woodDark,  C.roofGreen);
-
-    // Buildings - right side of path
-    createBuilding( 6,  18, 4.5, 4, 3.5, C.stone,     C.roofPurple);
-    createBuilding( 7,  10, 3.5, 4, 3,   C.woodLight, C.roofRed);
-    createBuilding( 6,   3, 5, 5, 4.5,   C.stone,     C.roofBlue);  // Tavern
-    createBuilding( 7,  -5, 4, 3.5, 3,   C.woodDark,  C.roofRed);
-    createBuilding( 6, -13, 3.5, 4, 3.5, C.woodLight, C.roofGreen);
-
-    // Buildings further out
-    createBuilding(-14,  5, 4, 4, 3, C.woodDark, C.roofBlue, Math.PI / 6);
-    createBuilding( 14, -2, 4, 4, 3, C.stone,    C.roofPurple, -Math.PI / 8);
-
-    // ── Stone Walls ────────────────────────────────────────────
-    function createWall(x, z, len, rotY = 0) {
-      const wall = new THREE.Mesh(
-        new THREE.BoxGeometry(len, 2.5, 0.6),
-        mat(C.stoneWall)
-      );
-      wall.position.set(x, 1.25, z);
-      wall.rotation.y = rotY;
-      wall.castShadow = true;
-      wall.receiveShadow = true;
-      scene.add(wall);
-    }
-
-    // Front wall (with gap for entrance)
-    createWall(-12, 24, 18);
-    createWall( 12, 24, 18);
-    // Back wall
-    createWall(0, -36, 40);
-    // Side walls
-    createWall(-20, -5, 60, Math.PI / 2);
-    createWall( 20, -5, 60, Math.PI / 2);
-
-    // ── Trees ──────────────────────────────────────────────────
-    // Perimeter trees
-    const treeData = [
-      // Behind castle
-      [-12, -38, 'pine', 1.2], [12, -38, 'pine', 1.1], [0, -42, 'oak', 1],
-      [-18, -35, 'pine', 0.9], [18, -35, 'pine', 1.0],
-      // Left side outside wall
-      [-24, 15, 'pine', 1.1], [-26, 8, 'oak', 1.2], [-24, 0, 'pine', 0.9],
-      [-25, -10, 'pine', 1.0], [-26, -20, 'oak', 1.1], [-24, -30, 'pine', 1.2],
-      // Right side outside wall
-      [24, 12, 'oak', 1.0], [26, 5, 'pine', 1.1], [24, -3, 'pine', 0.9],
-      [25, -12, 'oak', 1.2], [26, -22, 'pine', 1.0], [24, -32, 'pine', 1.1],
-      // Front area
-      [-15, 30, 'pine', 1.0], [15, 30, 'pine', 1.1], [-8, 32, 'oak', 0.9],
-      [8, 33, 'pine', 1.0], [0, 36, 'oak', 1.2],
-      // Scattered far
-      [-35, 20, 'pine', 1.3], [35, 20, 'pine', 1.2], [-30, -15, 'oak', 1.1],
-      [30, -15, 'pine', 1.0], [-40, 0, 'pine', 1.4], [40, 0, 'oak', 1.3],
-      // Inside town (few small ones)
-      [-12, 18, 'oak', 0.7], [12, -10, 'oak', 0.7],
-    ];
-    treeData.forEach(([x, z, type, s]) => createTree(x, z, type, s));
-
-    // ── Water Pond ─────────────────────────────────────────────
-    const waterGeo = new THREE.CircleGeometry(5, 32);
-    waterGeo.rotateX(-Math.PI / 2);
-    const waterMesh = new THREE.Mesh(waterGeo, matPhong(C.water, {
-      transparent: true, opacity: 0.65, shininess: 100, specular: 0x222244,
+    // ── Water Pond ────────────────────────────────────────────
+    const waterGeo = new THREE.CircleGeometry(7, 32);
+    waterGeo.rotateX(-PI / 2);
+    const waterMesh = new THREE.Mesh(waterGeo, new THREE.MeshPhongMaterial({
+      color: 0x3a7faa, transparent: true, opacity: 0.65, shininess: 100, specular: 0x222244,
     }));
-    waterMesh.position.set(14, 0.05, -20);
+    waterMesh.position.set(22, 0.05, -18);
     scene.add(waterMesh);
 
-    // Pond edge stones
-    for (let i = 0; i < 12; i++) {
-      const angle = (i / 12) * Math.PI * 2;
-      const stone = new THREE.Mesh(
-        new THREE.SphereGeometry(0.4 + Math.random() * 0.3, 5, 4),
-        mat(C.stone, { flatShading: true })
-      );
-      stone.position.set(
-        14 + Math.cos(angle) * 5.2,
-        0.2,
-        -20 + Math.sin(angle) * 5.2
-      );
-      stone.scale.y = 0.5;
-      scene.add(stone);
-    }
-
-    // ── Well ───────────────────────────────────────────────────
-    {
-      const wellBase = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.8, 0.9, 1.0, 8, 1, true),
-        mat(C.stoneWall)
-      );
-      wellBase.position.set(-3, 0.5, 10);
-      scene.add(wellBase);
-
-      // Well roof supports
-      [-0.4, 0.4].forEach(offset => {
-        const pole = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.06, 0.06, 1.8, 5),
-          mat(C.woodDark)
-        );
-        pole.position.set(-3 + offset, 1.9, 10);
-        scene.add(pole);
-      });
-
-      // Well roof
-      const wellRoof = new THREE.Mesh(
-        new THREE.ConeGeometry(1.0, 0.7, 4),
-        mat(C.roofRed)
-      );
-      wellRoof.position.set(-3, 3.1, 10);
-      wellRoof.rotation.y = Math.PI / 4;
-      scene.add(wellRoof);
-
-      // Water inside well
-      const wellWater = new THREE.Mesh(
-        new THREE.CircleGeometry(0.7, 8).rotateX(-Math.PI / 2),
-        matPhong(C.water, { transparent: true, opacity: 0.6 })
-      );
-      wellWater.position.set(-3, 0.3, 10);
-      scene.add(wellWater);
-    }
-
-    // ── Barrels & Crates ───────────────────────────────────────
-    function createBarrel(x, z) {
-      const barrel = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.35, 0.3, 0.8, 8),
-        mat(C.woodDark)
-      );
-      barrel.position.set(x, 0.4, z);
-      barrel.castShadow = true;
-      scene.add(barrel);
-    }
-    function createCrate(x, z, s = 0.6) {
-      const crate = new THREE.Mesh(
-        new THREE.BoxGeometry(s, s, s),
-        mat(C.woodLight)
-      );
-      crate.position.set(x, s / 2, z);
-      crate.rotation.y = Math.random() * 0.5;
-      crate.castShadow = true;
-      scene.add(crate);
-    }
-
-    createBarrel(-4.5, 16); createBarrel(-4.8, 16.5);
-    createBarrel(8.5, 4); createBarrel(8.8, 3.5);
-    createCrate(8.5, 11); createCrate(9, 11.5, 0.5);
-    createCrate(-4, -5.5); createCrate(-4.5, -5, 0.5);
-
-    // ── Torches ────────────────────────────────────────────────
-    const torches = [];
-    const torchPositions = [
-      [-3.8, 2.5, 15], [3.8, 2.5, 18],
-      [-3.5, 2.5, 8],  [3.5, 2.5, 10],
-      [-3.5, 2.5, 0],  [3.5, 2.5, 3],
-      [-5, 2.5, -6],   [4.5, 2.5, -5],
-      [-3.5, 2.5, -14], [3.5, 2.5, -13],
-      // Castle torches
-      [-3, 4, -19.5], [3, 4, -19.5],
-    ];
-    torchPositions.forEach(([x, y, z]) => torches.push(createTorch(x, y, z)));
-
-    // ── Floating Particles (fireflies) ─────────────────────────
+    // ── Floating Particles ────────────────────────────────────
     const particleCount = 250;
     const particleGeo = new THREE.BufferGeometry();
     const pPos = new Float32Array(particleCount * 3);
-    const pVel = new Float32Array(particleCount * 3); // velocities for animation
+    const pVel = new Float32Array(particleCount * 3);
     for (let i = 0; i < particleCount * 3; i += 3) {
-      pPos[i]     = (Math.random() - 0.5) * 80;
-      pPos[i + 1] = Math.random() * 12 + 1;
-      pPos[i + 2] = (Math.random() - 0.5) * 80;
+      pPos[i]     = (Math.random() - 0.5) * 100;
+      pPos[i + 1] = Math.random() * 15 + 1;
+      pPos[i + 2] = (Math.random() - 0.5) * 100;
       pVel[i]     = (Math.random() - 0.5) * 0.3;
-      pVel[i + 1] = (Math.random() - 0.5) * 0.2;
+      pVel[i + 1] = (Math.random() - 0.5) * 0.15;
       pVel[i + 2] = (Math.random() - 0.5) * 0.3;
     }
     particleGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
     const particles = new THREE.Points(particleGeo, new THREE.PointsMaterial({
-      color: 0xFFD700, size: 0.12, transparent: true, opacity: 0.6,
+      color: 0xFFD700, size: 0.15, transparent: true, opacity: 0.6,
     }));
     scene.add(particles);
 
-    // ── Pointer Lock Controls ──────────────────────────────────
+    // ── Model Loader ──────────────────────────────────────────
+    const gltfLoader = new GLTFLoader();
+    const modelCache = {};
+
+    const MODELS_TO_LOAD = [
+      // Walls (stone)
+      'wall', 'wallDoor', 'wallDoorwayRound', 'wallWindowGlass', 'wallWindowShutters',
+      'wallWindowRound', 'wallCorner', 'wallCornerDetail', 'wallBroken', 'wallArch', 'wallArchTop',
+      'wallBlock', 'wallHalf',
+      // Walls (wood)
+      'wallWood', 'wallWoodDoor', 'wallWoodWindowGlass', 'wallWoodWindowShutters',
+      'wallWoodCorner', 'wallWoodBroken',
+      // Roofs (normal)
+      'roof', 'roofCorner', 'roofCornerInner', 'roofFlat',
+      'roofGable', 'roofGableDetail', 'roofGableEnd', 'roofGableTop', 'roofPoint',
+      'roofLeft', 'roofRight', 'roofWindow',
+      // Roofs (high)
+      'roofHigh', 'roofHighCorner', 'roofHighCornerInner', 'roofHighFlat',
+      'roofHighGable', 'roofHighGableDetail', 'roofHighGableEnd', 'roofHighGableTop', 'roofHighPoint',
+      'roofHighLeft', 'roofHighRight',
+      // Trees
+      'tree', 'treeHigh', 'treeCrooked', 'treeHighRound',
+      // Roads
+      'road', 'roadBend', 'roadCorner', 'roadEdge',
+      // Fences & hedges
+      'fence', 'fenceGate', 'hedge', 'hedgeGate',
+      // Props
+      'cart', 'lantern', 'bannerRed', 'bannerGreen',
+      'rockLarge', 'rockSmall', 'rockWide',
+      'pillarStone', 'stall', 'stallGreen', 'stallRed',
+      // Structures
+      'fountainRound', 'windmill', 'watermill',
+      // Details
+      'chimney', 'chimneyTop', 'overhang', 'stairsStone',
+    ];
+
+    async function loadAllModels() {
+      const bar = document.getElementById('loadBar');
+      const status = document.getElementById('loadStatus');
+      let loaded = 0;
+      const total = MODELS_TO_LOAD.length;
+
+      const promises = MODELS_TO_LOAD.map(name =>
+        gltfLoader.loadAsync(`models/${name}.glb`).then(gltf => {
+          modelCache[name] = gltf.scene;
+          loaded++;
+          bar.style.width = `${(loaded / total * 100).toFixed(0)}%`;
+          status.textContent = `Loading models... ${loaded}/${total}`;
+        }).catch(err => {
+          console.warn(`Failed to load ${name}:`, err);
+          loaded++;
+          bar.style.width = `${(loaded / total * 100).toFixed(0)}%`;
+        })
+      );
+      await Promise.all(promises);
+    }
+
+    // ── Model Placement Helpers ───────────────────────────────
+    function place(name, x, y, z, rotY = 0, scale = S) {
+      const src = modelCache[name];
+      if (!src) return null;
+      const m = src.clone();
+      m.position.set(x, y, z);
+      m.rotation.y = rotY;
+      m.scale.setScalar(scale);
+      m.traverse(c => {
+        if (c.isMesh) { c.castShadow = true; c.receiveShadow = true; }
+      });
+      scene.add(m);
+      return m;
+    }
+
+    // Place a model at grid coordinates (tile units), auto-scaled
+    function placeGrid(name, gx, gy, gz, rotY = 0) {
+      return place(name, gx * S, gy * S, gz * S, rotY);
+    }
+
+    // ── Building Construction ─────────────────────────────────
+    // Wall rotation: model default face points -X
+    // FACE.W=0(-X), FACE.N=π/2(+Z), FACE.E=π(+X), FACE.S=-π/2(-Z)
+
+    function buildRect(cx, cz, w, d, floors, wallPicker, roofType, opts = {}) {
+      // cx, cz = world position of building center
+      // w = tiles wide (X-axis), d = tiles deep (Z-axis)
+      // wallPicker(face, index, floor) → model name
+      const g = new THREE.Group();
+
+      for (let f = 0; f < floors; f++) {
+        // South face (facing -Z)
+        for (let i = 0; i < w; i++) {
+          const m = modelCache[wallPicker('S', i, f)]?.clone();
+          if (m) { m.position.set(i, f, 0); m.rotation.y = FACE.S; g.add(m); }
+        }
+        // North face (facing +Z)
+        for (let i = 0; i < w; i++) {
+          const m = modelCache[wallPicker('N', i, f)]?.clone();
+          if (m) { m.position.set(i, f, d); m.rotation.y = FACE.N; g.add(m); }
+        }
+        // West face (facing -X)
+        for (let i = 0; i < d; i++) {
+          const m = modelCache[wallPicker('W', i, f)]?.clone();
+          if (m) { m.position.set(0, f, i); m.rotation.y = FACE.W; g.add(m); }
+        }
+        // East face (facing +X)
+        for (let i = 0; i < d; i++) {
+          const m = modelCache[wallPicker('E', i, f)]?.clone();
+          if (m) { m.position.set(w, f, i); m.rotation.y = FACE.E; g.add(m); }
+        }
+      }
+
+      // Roof
+      const ry = floors;
+      if (roofType === 'pointed') {
+        // Pointed roof with gables on Z ends, slopes on X sides
+        for (let iz = 0; iz < d; iz++) {
+          const rn = (iz === 0) ? 'roofGableEnd' : (iz === d - 1) ? 'roofGableEnd' : 'roof';
+          for (let ix = 0; ix < w; ix++) {
+            const m = modelCache[rn]?.clone();
+            if (m) { m.position.set(ix, ry, iz); g.add(m); }
+          }
+        }
+        // Gable details on ends
+        for (let ix = 0; ix < w; ix++) {
+          const mS = modelCache['roofGable']?.clone();
+          if (mS) { mS.position.set(ix, ry, 0); mS.rotation.y = FACE.S; g.add(mS); }
+          const mN = modelCache['roofGable']?.clone();
+          if (mN) { mN.position.set(ix, ry, d); mN.rotation.y = FACE.N; g.add(mN); }
+        }
+      } else if (roofType === 'high') {
+        for (let iz = 0; iz < d; iz++) {
+          for (let ix = 0; ix < w; ix++) {
+            const m = modelCache['roofHigh']?.clone();
+            if (m) { m.position.set(ix, ry, iz); g.add(m); }
+          }
+        }
+        for (let ix = 0; ix < w; ix++) {
+          const mS = modelCache['roofHighGable']?.clone();
+          if (mS) { mS.position.set(ix, ry, 0); mS.rotation.y = FACE.S; g.add(mS); }
+          const mN = modelCache['roofHighGable']?.clone();
+          if (mN) { mN.position.set(ix, ry, d); mN.rotation.y = FACE.N; g.add(mN); }
+        }
+      } else {
+        // Flat roof
+        for (let iz = 0; iz < d; iz++) {
+          for (let ix = 0; ix < w; ix++) {
+            const m = modelCache['roofFlat']?.clone();
+            if (m) { m.position.set(ix, ry, iz); g.add(m); }
+          }
+        }
+      }
+
+      // Chimney
+      if (opts.chimney) {
+        const ch = modelCache['chimney']?.clone();
+        if (ch) { ch.position.set(w - 1, ry, d - 1); g.add(ch); }
+        const ct = modelCache['chimneyTop']?.clone();
+        if (ct) { ct.position.set(w - 1, ry + 1, d - 1); g.add(ct); }
+      }
+
+      g.scale.setScalar(S);
+      g.position.set(cx - (w * S) / 2, 0, cz - (d * S) / 2);
+
+      g.traverse(c => {
+        if (c.isMesh) { c.castShadow = true; c.receiveShadow = true; }
+      });
+      scene.add(g);
+      return g;
+    }
+
+    // Wall picker factories
+    function stoneHouse(doorFace = 'S', doorIdx = 0) {
+      return (face, i, floor) => {
+        if (floor === 0 && face === doorFace && i === doorIdx) return 'wallDoor';
+        if (floor === 0) return (i % 2 === 1) ? 'wallWindowShutters' : 'wall';
+        return (i % 2 === 0) ? 'wallWindowGlass' : 'wall';
+      };
+    }
+
+    function woodHouse(doorFace = 'S', doorIdx = 0) {
+      return (face, i, floor) => {
+        if (floor === 0 && face === doorFace && i === doorIdx) return 'wallWoodDoor';
+        if (floor === 0) return (i % 2 === 1) ? 'wallWoodWindowShutters' : 'wallWood';
+        return (i % 2 === 0) ? 'wallWoodWindowGlass' : 'wallWood';
+      };
+    }
+
+    function mixedHouse(doorFace = 'S', doorIdx = 0) {
+      return (face, i, floor) => {
+        if (floor === 0 && face === doorFace && i === doorIdx) return 'wallDoor';
+        if (floor === 0) return (i % 2 === 1) ? 'wallWindowShutters' : 'wall';
+        if (floor === 1 && face === doorFace && i === doorIdx) return 'wallWoodWindowGlass';
+        return (floor === 1) ? ((i % 2 === 0) ? 'wallWoodWindowGlass' : 'wallWood') : 'wall';
+      };
+    }
+
+    // ── Torch Creator ─────────────────────────────────────────
+    const torches = [];
+    function createTorch(x, y, z) {
+      const light = new THREE.PointLight(0xFF6600, 1.0, 15, 2);
+      light.position.set(x, y + 0.5, z);
+      scene.add(light);
+      const flame = new THREE.Mesh(
+        new THREE.SphereGeometry(0.12, 6, 6),
+        new THREE.MeshBasicMaterial({ color: 0xFF8800 })
+      );
+      flame.position.set(x, y + 0.45, z);
+      scene.add(flame);
+      torches.push({ light, flame });
+    }
+
+    // ── Build the Town ────────────────────────────────────────
+    function buildTown() {
+
+      // ── Roads (along Z-axis, centered at X=0) ──────────────
+      for (let z = -12; z <= 12; z++) {
+        placeGrid('road', 0, 0, z);
+      }
+      // Side road along X
+      for (let x = -6; x <= 6; x++) {
+        if (x === 0) continue; // skip center (already has main road)
+        placeGrid('road', x, 0, 2);
+      }
+      // Road bends at intersection
+      placeGrid('roadCorner', -1, 0, 1);
+      placeGrid('roadCorner', 1, 0, 1, HALF_PI);
+      placeGrid('roadCorner', -1, 0, 3, -HALF_PI);
+      placeGrid('roadCorner', 1, 0, 3, PI);
+
+      // ── Buildings ──────────────────────────────────────────
+
+      // 1. Stone cottage (left of road, near entrance)
+      buildRect(-8, 24, 3, 2, 1, stoneHouse('E', 0), 'pointed', { chimney: true });
+
+      // 2. Tall wood house (left of road)
+      buildRect(-9, 15, 2, 3, 2, woodHouse('E', 1), 'high', { chimney: true });
+
+      // 3. Large stone tavern (left of road, center area)
+      buildRect(-10, 4, 3, 3, 2, mixedHouse('E', 1), 'pointed');
+
+      // 4. Small wood shop (left of road, south)
+      buildRect(-8, -6, 2, 2, 1, woodHouse('E', 0), 'pointed');
+
+      // 5. Stone house with arch (left, far south)
+      buildRect(-9, -16, 3, 2, 1, stoneHouse('E', 1), 'high');
+
+      // 6. Wood house (right of road, near entrance)
+      buildRect(7, 22, 3, 2, 1, woodHouse('W', 1), 'pointed', { chimney: true });
+
+      // 7. Tall stone house (right of road)
+      buildRect(8, 13, 2, 3, 2, stoneHouse('W', 0), 'high');
+
+      // 8. Large mixed workshop (right of road)
+      buildRect(8, 2, 3, 3, 2, mixedHouse('W', 1), 'pointed', { chimney: true });
+
+      // 9. Small stone shop (right of road, south)
+      buildRect(7, -8, 2, 2, 1, stoneHouse('W', 0), 'pointed');
+
+      // 10. Wood house (right, far south)
+      buildRect(8, -18, 3, 2, 2, woodHouse('W', 1), 'high', { chimney: true });
+
+      // ── Windmill (north landmark) ──────────────────────────
+      place('windmill', 0, 0, -30, 0, S * 3);
+
+      // ── Watermill (near pond) ──────────────────────────────
+      place('watermill', 18, 0, -18, HALF_PI, S * 2.5);
+
+      // ── Fountain (town center) ─────────────────────────────
+      place('fountainRound', 0, 0, 6, 0, S * 2);
+
+      // ── Market Stalls ──────────────────────────────────────
+      place('stallGreen', -14, 0, 6, HALF_PI, S);
+      place('stallRed', -14, 0, 9, HALF_PI, S);
+      place('stall', 14, 0, 6, -HALF_PI, S);
+
+      // ── Cart ───────────────────────────────────────────────
+      place('cart', 4, 0, 20, 0.3, S);
+      place('cart', -15, 0, -4, -0.5, S);
+
+      // ── Lanterns along road ────────────────────────────────
+      for (let z = -10; z <= 12; z += 4) {
+        place('lantern', -2.5, 0, z * S, 0, S);
+        place('lantern',  2.5, 0, z * S, 0, S);
+        // Add torch lights near lanterns
+        createTorch(-2.5, S * 1.5, z * S);
+        createTorch( 2.5, S * 1.5, z * S);
+      }
+
+      // ── Fences ─────────────────────────────────────────────
+      // Along the main road edges (decorative)
+      for (let z = -10; z <= -5; z++) {
+        placeGrid('fence', -1, 0, z);
+        placeGrid('fence', 1, 0, z, PI);
+      }
+      // Fence around market area
+      for (let x = -6; x <= -3; x++) {
+        placeGrid('fence', x, 0, 4, -HALF_PI);
+        placeGrid('fence', x, 0, 11, HALF_PI);
+      }
+      placeGrid('fenceGate', -5, 0, 7, 0);
+
+      // Fence along right side
+      for (let z = 6; z <= 10; z++) {
+        placeGrid('fence', 5, 0, z, PI);
+      }
+
+      // ── Hedges ─────────────────────────────────────────────
+      for (let x = -3; x <= 3; x++) {
+        placeGrid('hedge', x, 0, -13, -HALF_PI);
+      }
+      placeGrid('hedgeGate', 0, 0, -13, -HALF_PI);
+
+      // ── Rocks ──────────────────────────────────────────────
+      const rockPositions = [
+        [20, -22, 0.4], [-18, -20, 0.3], [25, -15, 0.5],
+        [-22, 15, 0.3], [22, 10, 0.4], [-25, -8, 0.5],
+        [15, -25, 0.3], [-15, 28, 0.4], [28, 5, 0.3],
+      ];
+      rockPositions.forEach(([rx, rz, rs]) => {
+        const rock = Math.random() > 0.5 ? 'rockLarge' : 'rockSmall';
+        place(rock, rx, 0, rz, Math.random() * PI * 2, S * (0.8 + rs));
+      });
+
+      // Pond edge rocks
+      for (let i = 0; i < 10; i++) {
+        const angle = (i / 10) * PI * 2;
+        place('rockSmall', 22 + Math.cos(angle) * 7.5, 0, -18 + Math.sin(angle) * 7.5,
+          Math.random() * PI * 2, S * 0.6);
+      }
+
+      // ── Stairs ─────────────────────────────────────────────
+      place('stairsStone', 0, 0, -25, 0, S);
+
+      // ── Banners ────────────────────────────────────────────
+      place('bannerRed', -8.5, S * 1, 4, 0, S);
+      place('bannerGreen', 8.5, S * 1, 2, PI, S);
+
+      // ── Pillars ────────────────────────────────────────────
+      place('pillarStone', -3.5, 0, 33, 0, S);
+      place('pillarStone',  3.5, 0, 33, 0, S);
+
+      // ── Trees ──────────────────────────────────────────────
+      const treeData = [
+        // Behind windmill
+        [-8, -35, 'treeHigh', 1.2], [8, -35, 'tree', 1.1], [-12, -32, 'treeCrooked', 1.0],
+        [12, -32, 'treeHighRound', 1.1], [0, -38, 'treeHigh', 1.3],
+        // Left perimeter
+        [-20, 25, 'treeHigh', 1.1], [-22, 18, 'tree', 1.2], [-20, 10, 'treeHighRound', 0.9],
+        [-22, 0, 'treeCrooked', 1.0], [-20, -10, 'treeHigh', 1.1], [-22, -22, 'tree', 1.2],
+        [-18, -28, 'treeHighRound', 1.0],
+        // Right perimeter
+        [20, 25, 'tree', 1.0], [22, 18, 'treeHigh', 1.1], [20, 8, 'treeCrooked', 0.9],
+        [25, -5, 'treeHighRound', 1.2], [22, -25, 'treeHigh', 1.0], [20, -30, 'tree', 1.1],
+        // Front area
+        [-12, 35, 'treeHigh', 1.0], [12, 35, 'tree', 1.1], [-6, 38, 'treeHighRound', 0.9],
+        [6, 38, 'treeCrooked', 1.0], [0, 42, 'treeHigh', 1.2],
+        // Scattered far
+        [-35, 15, 'treeHigh', 1.4], [35, 15, 'tree', 1.3], [-30, -10, 'treeHighRound', 1.1],
+        [30, -10, 'treeCrooked', 1.2], [-38, 0, 'treeHigh', 1.5], [38, 0, 'tree', 1.4],
+        [-32, -25, 'tree', 1.2], [32, -25, 'treeHigh', 1.3],
+        // Inside town (small decorative)
+        [-5, 18, 'treeHighRound', 0.7], [5, -5, 'treeHighRound', 0.7],
+        [12, 20, 'tree', 0.8], [-12, -12, 'treeCrooked', 0.8],
+      ];
+      treeData.forEach(([tx, tz, type, ts]) => {
+        place(type, tx, 0, tz, Math.random() * PI * 2, S * ts);
+      });
+
+      // ── Extra torches near buildings ───────────────────────
+      createTorch(-5, 3.5, 24);
+      createTorch(4, 3.5, 22);
+      createTorch(-6, 3.5, 4);
+      createTorch(5, 3.5, 2);
+      createTorch(-6, 3.5, -6);
+      createTorch(5, 3.5, -8);
+      createTorch(-6, 6, 15);
+      createTorch(5, 6, 13);
+    }
+
+    // ── Pointer Lock Controls ─────────────────────────────────
     const controls = new PointerLockControls(camera, document.body);
     const blocker = document.getElementById('blocker');
     const hud = document.getElementById('hud');
@@ -573,7 +589,7 @@
     controls.addEventListener('lock', () => { blocker.style.display = 'none'; });
     controls.addEventListener('unlock', () => { blocker.style.display = 'flex'; });
 
-    // ── Movement ───────────────────────────────────────────────
+    // ── Movement ──────────────────────────────────────────────
     let moveF = false, moveB = false, moveL = false, moveR = false;
     let canJump = false;
     const velocity = new THREE.Vector3();
@@ -599,37 +615,32 @@
       }
     });
 
-    // ── Resize ─────────────────────────────────────────────────
+    // ── Resize ────────────────────────────────────────────────
     addEventListener('resize', () => {
       camera.aspect = innerWidth / innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(innerWidth, innerHeight);
     });
 
-    // ── Animation Loop ─────────────────────────────────────────
+    // ── Animation Loop ────────────────────────────────────────
     const clock = new THREE.Clock();
     let elapsed = 0;
 
     function animate() {
       requestAnimationFrame(animate);
-
       const delta = Math.min(clock.getDelta(), 0.1);
       elapsed += delta;
 
       if (controls.isLocked) {
-        // Friction
         velocity.x -= velocity.x * 8.0 * delta;
         velocity.z -= velocity.z * 8.0 * delta;
-
-        // Gravity
         velocity.y -= 25.0 * delta;
 
-        // Input direction
         direction.z = Number(moveF) - Number(moveB);
         direction.x = Number(moveR) - Number(moveL);
         direction.normalize();
 
-        const speed = 30.0;
+        const speed = 35.0;
         if (moveF || moveB) velocity.z -= direction.z * speed * delta;
         if (moveL || moveR) velocity.x -= direction.x * speed * delta;
 
@@ -637,23 +648,20 @@
         controls.moveForward(-velocity.z * delta);
         camera.position.y += velocity.y * delta;
 
-        // Ground clamp
         if (camera.position.y < 1.6) {
           velocity.y = 0;
           camera.position.y = 1.6;
           canJump = true;
         }
 
-        // World bounds
         const p = camera.position;
-        p.x = Math.max(-95, Math.min(95, p.x));
-        p.z = Math.max(-95, Math.min(95, p.z));
+        p.x = Math.max(-120, Math.min(120, p.x));
+        p.z = Math.max(-120, Math.min(120, p.z));
 
-        // HUD
         hud.textContent = `x: ${p.x.toFixed(1)}  z: ${p.z.toFixed(1)}`;
       }
 
-      // Animate torch flames (flicker)
+      // Torch flicker
       torches.forEach((t, i) => {
         const flicker = 0.8 + Math.sin(elapsed * 8 + i * 2.5) * 0.2 +
                          Math.sin(elapsed * 13 + i * 1.7) * 0.15;
@@ -661,18 +669,16 @@
         t.flame.scale.setScalar(0.8 + Math.sin(elapsed * 10 + i) * 0.3);
       });
 
-      // Animate particles
+      // Particles
       const posArr = particles.geometry.attributes.position.array;
       for (let i = 0; i < particleCount * 3; i += 3) {
         posArr[i]     += pVel[i] * delta;
         posArr[i + 1] += pVel[i + 1] * delta + Math.sin(elapsed + i) * 0.002;
         posArr[i + 2] += pVel[i + 2] * delta;
-
-        // Wrap around
-        if (posArr[i] > 40) posArr[i] = -40;
-        if (posArr[i] < -40) posArr[i] = 40;
-        if (posArr[i + 2] > 40) posArr[i + 2] = -40;
-        if (posArr[i + 2] < -40) posArr[i + 2] = 40;
+        if (posArr[i] > 50) posArr[i] = -50;
+        if (posArr[i] < -50) posArr[i] = 50;
+        if (posArr[i + 2] > 50) posArr[i + 2] = -50;
+        if (posArr[i + 2] < -50) posArr[i + 2] = 50;
         if (posArr[i + 1] > 15) posArr[i + 1] = 1;
         if (posArr[i + 1] < 0.5) posArr[i + 1] = 12;
       }
@@ -684,7 +690,19 @@
       renderer.render(scene, camera);
     }
 
-    animate();
+    // ── Init ──────────────────────────────────────────────────
+    async function init() {
+      await loadAllModels();
+      buildTown();
+
+      // Hide loading, show blocker
+      document.getElementById('loading').style.display = 'none';
+      blocker.style.display = 'flex';
+
+      animate();
+    }
+
+    init();
   </script>
 </body>
 </html>
