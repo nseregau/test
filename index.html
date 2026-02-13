@@ -1,781 +1,1169 @@
 <!DOCTYPE html>
-<html lang="uk">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Golf Tempo</title>
-    <style>
-        :root {
-            --glass-bg: rgba(255, 255, 255, 0.12);
-            --glass-border: rgba(255, 255, 255, 0.22);
-            --glass-highlight: rgba(255, 255, 255, 0.35);
-            --glass-blur: 24px;
-            --radius-sm: 14px;
-            --radius-md: 20px;
-            --radius-lg: 28px;
-            --radius-pill: 100px;
-            --green: #34c759;
-            --green-dim: rgba(52, 199, 89, 0.25);
-            --blue: #007aff;
-            --orange: #ff9500;
-            --text: #ffffff;
-            --text-secondary: rgba(255, 255, 255, 0.55);
-            --safe-top: env(safe-area-inset-top, 20px);
-            --safe-bottom: env(safe-area-inset-bottom, 0px);
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#1a472a">
+<title>Golf Pro Tempo</title>
+<link rel="icon" type="image/png" href="images/icon.png">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
+:root {
+  --green: #3bb54a;
+  --green-dark: #2d8c3a;
+  --bg-dark: rgba(0,0,0,0.5);
+  --white-75: rgba(255,255,255,0.75);
+  --white-50: rgba(255,255,255,0.5);
+}
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif;
-            background: #0a1a0a;
-            color: var(--text);
-            overflow-x: hidden;
-            min-height: 100dvh;
-            -webkit-font-smoothing: antialiased;
-        }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+  background: #1a472a;
+  color: white;
+  min-height: 100dvh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
 
-        /* ── Background ── */
-        .bg {
-            position: fixed;
-            inset: 0;
-            z-index: 0;
-            overflow: hidden;
-        }
-        .bg::before {
-            content: '';
-            position: absolute;
-            width: 300px;
-            height: 300px;
-            background: radial-gradient(circle, rgba(52, 199, 89, 0.35), transparent 70%);
-            top: -60px;
-            right: -80px;
-            animation: drift1 12s ease-in-out infinite alternate;
-        }
-        .bg::after {
-            content: '';
-            position: absolute;
-            width: 350px;
-            height: 350px;
-            background: radial-gradient(circle, rgba(0, 122, 255, 0.2), transparent 70%);
-            bottom: 60px;
-            left: -100px;
-            animation: drift2 15s ease-in-out infinite alternate;
-        }
-        @keyframes drift1 {
-            to { transform: translate(-40px, 60px) scale(1.15); }
-        }
-        @keyframes drift2 {
-            to { transform: translate(50px, -40px) scale(1.1); }
-        }
+.app-bg {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: url('images/bg.jpg') center/cover no-repeat;
+  z-index: 0;
+}
 
-        /* ── Glass mixin ── */
-        .glass {
-            background: var(--glass-bg);
-            backdrop-filter: blur(var(--glass-blur));
-            -webkit-backdrop-filter: blur(var(--glass-blur));
-            border: 1px solid var(--glass-border);
-            box-shadow:
-                inset 0 1px 0 var(--glass-highlight),
-                0 8px 32px rgba(0, 0, 0, 0.25);
-        }
+.app-container {
+  position: relative;
+  z-index: 1;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 16px 22px 32px;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
 
-        /* ── App shell ── */
-        .app {
-            position: relative;
-            z-index: 1;
-            max-width: 430px;
-            margin: 0 auto;
-            min-height: 100dvh;
-            display: flex;
-            flex-direction: column;
-            padding: calc(var(--safe-top) + 8px) 16px calc(var(--safe-bottom) + 90px);
-        }
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 5px 0;
+}
 
-        /* ── Status bar ── */
-        .status-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 4px 4px 12px;
-            font-size: 13px;
-            font-weight: 600;
-        }
-        .status-bar .time { letter-spacing: 0.02em; }
-        .status-bar .icons { display: flex; gap: 5px; align-items: center; }
-        .status-bar .icons svg { width: 16px; height: 16px; fill: #fff; }
+.header h1 {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: var(--white-75);
+}
 
-        /* ── Header ── */
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        .header h1 {
-            font-size: 32px;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-        }
-        .header-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: grid;
-            place-items: center;
-        }
-        .header-icon svg {
-            width: 20px;
-            height: 20px;
-            fill: var(--text);
-        }
+.info-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  opacity: 0.75;
+  transition: opacity 0.2s;
+}
+.info-btn:hover { opacity: 1; }
+.info-btn svg { display: block; }
 
-        /* ── Tempo ring card ── */
-        .tempo-card {
-            border-radius: var(--radius-lg);
-            padding: 28px 20px;
-            margin-bottom: 16px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .tempo-ring-wrap {
-            position: relative;
-            width: 200px;
-            height: 200px;
-            margin-bottom: 20px;
-        }
-        .tempo-ring-wrap svg {
-            width: 100%;
-            height: 100%;
-            transform: rotate(-90deg);
-        }
-        .ring-bg {
-            fill: none;
-            stroke: rgba(255, 255, 255, 0.08);
-            stroke-width: 10;
-        }
-        .ring-progress {
-            fill: none;
-            stroke: url(#ringGrad);
-            stroke-width: 10;
-            stroke-linecap: round;
-            stroke-dasharray: 502;
-            stroke-dashoffset: 125;
-            transition: stroke-dashoffset 0.6s ease;
-        }
-        .ring-center {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-        .ring-bpm {
-            font-size: 52px;
-            font-weight: 700;
-            letter-spacing: -2px;
-            line-height: 1;
-        }
-        .ring-label {
-            font-size: 14px;
-            color: var(--text-secondary);
-            margin-top: 4px;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-        }
-        .tempo-ratio {
-            display: flex;
-            gap: 20px;
-            margin-top: 4px;
-        }
-        .ratio-item {
-            text-align: center;
-        }
-        .ratio-value {
-            font-size: 20px;
-            font-weight: 600;
-        }
-        .ratio-label {
-            font-size: 11px;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-top: 2px;
-        }
-        .ratio-divider {
-            width: 1px;
-            background: var(--glass-border);
-            align-self: stretch;
-        }
+/* Figure */
+.figure-container {
+  display: flex;
+  justify-content: center;
+  padding: 20px 0;
+}
 
-        /* ── Swing type selector ── */
-        .swing-selector {
-            border-radius: var(--radius-pill);
-            padding: 4px;
-            display: flex;
-            margin-bottom: 16px;
-        }
-        .swing-btn {
-            flex: 1;
-            padding: 10px 0;
-            border: none;
-            background: transparent;
-            color: var(--text-secondary);
-            font-size: 13px;
-            font-weight: 600;
-            border-radius: var(--radius-pill);
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-family: inherit;
-            letter-spacing: 0.02em;
-        }
-        .swing-btn.active {
-            background: rgba(52, 199, 89, 0.25);
-            color: var(--green);
-            box-shadow: 0 2px 12px rgba(52, 199, 89, 0.15);
-        }
+.figure-container img {
+  height: 250px;
+  width: auto;
+  object-fit: contain;
+}
 
-        /* ── Speed presets ── */
-        .presets-label {
-            font-size: 13px;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 1.2px;
-            margin-bottom: 10px;
-            font-weight: 600;
-        }
-        .presets-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-            margin-bottom: 16px;
-        }
-        .preset-card {
-            border-radius: var(--radius-md);
-            padding: 14px 8px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        .preset-card.active {
-            background: rgba(52, 199, 89, 0.18);
-            border-color: rgba(52, 199, 89, 0.4);
-            box-shadow: 0 0 20px rgba(52, 199, 89, 0.1);
-        }
-        .preset-beats {
-            font-size: 18px;
-            font-weight: 700;
-            margin-bottom: 3px;
-        }
-        .preset-card.active .preset-beats {
-            color: var(--green);
-        }
-        .preset-name {
-            font-size: 10px;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-        }
-        .preset-card.active .preset-name {
-            color: rgba(52, 199, 89, 0.7);
-        }
+/* Stats */
+.stats-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  background: var(--bg-dark);
+  border-radius: 20px;
+  padding: 14px;
+  gap: 4px;
+}
 
-        /* ── Settings row ── */
-        .settings-row {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 16px;
-        }
-        .setting-card {
-            flex: 1;
-            border-radius: var(--radius-md);
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-        .setting-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .setting-icon {
-            width: 32px;
-            height: 32px;
-            border-radius: 10px;
-            display: grid;
-            place-items: center;
-        }
-        .setting-icon svg {
-            width: 16px;
-            height: 16px;
-            fill: #fff;
-        }
-        .setting-icon.green { background: var(--green-dim); }
-        .setting-icon.green svg { fill: var(--green); }
-        .setting-icon.blue { background: rgba(0, 122, 255, 0.25); }
-        .setting-icon.blue svg { fill: var(--blue); }
-        .setting-icon.orange { background: rgba(255, 149, 0, 0.25); }
-        .setting-icon.orange svg { fill: var(--orange); }
-        .setting-value {
-            font-size: 22px;
-            font-weight: 700;
-        }
-        .setting-label {
-            font-size: 11px;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-        }
+.stat-item {
+  flex: 1;
+  text-align: center;
+}
 
-        /* ── Toggle (iOS style) ── */
-        .toggle {
-            width: 44px;
-            height: 26px;
-            border-radius: 13px;
-            background: rgba(255, 255, 255, 0.15);
-            position: relative;
-            cursor: pointer;
-            transition: background 0.3s;
-            flex-shrink: 0;
-        }
-        .toggle.on {
-            background: var(--green);
-        }
-        .toggle::after {
-            content: '';
-            position: absolute;
-            width: 22px;
-            height: 22px;
-            border-radius: 50%;
-            background: #fff;
-            top: 2px;
-            left: 2px;
-            transition: transform 0.3s;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-        .toggle.on::after {
-            transform: translateX(18px);
-        }
+.stat-value {
+  font-size: 18px;
+  font-weight: 600;
+  color: white;
+}
 
-        /* ── Start button ── */
-        .start-btn-wrap {
-            margin-top: auto;
-            padding-top: 16px;
-        }
-        .start-btn {
-            width: 100%;
-            padding: 18px;
-            border: none;
-            border-radius: var(--radius-pill);
-            background: linear-gradient(135deg, #34c759, #30b350);
-            color: #fff;
-            font-size: 18px;
-            font-weight: 700;
-            font-family: inherit;
-            cursor: pointer;
-            letter-spacing: 0.5px;
-            box-shadow:
-                0 4px 20px rgba(52, 199, 89, 0.35),
-                inset 0 1px 0 rgba(255, 255, 255, 0.2);
-            transition: all 0.2s ease;
-            position: relative;
-            overflow: hidden;
-        }
-        .start-btn::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(180deg, rgba(255,255,255,0.15) 0%, transparent 50%);
-            border-radius: inherit;
-        }
-        .start-btn:active {
-            transform: scale(0.97);
-            box-shadow: 0 2px 10px rgba(52, 199, 89, 0.3);
-        }
-        .start-btn.playing {
-            background: linear-gradient(135deg, #ff3b30, #e0332a);
-            box-shadow: 0 4px 20px rgba(255, 59, 48, 0.35),
-                inset 0 1px 0 rgba(255, 255, 255, 0.2);
-        }
+.stat-label {
+  font-size: 11px;
+  color: var(--white-50);
+  margin-top: 2px;
+}
 
-        /* ── Tab bar ── */
-        .tab-bar {
-            position: fixed;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 100%;
-            max-width: 430px;
-            padding: 8px 20px calc(var(--safe-bottom) + 8px);
-            display: flex;
-            justify-content: space-around;
-            z-index: 100;
-            border-top: 1px solid rgba(255, 255, 255, 0.06);
-            background: rgba(15, 30, 15, 0.7);
-            backdrop-filter: blur(30px);
-            -webkit-backdrop-filter: blur(30px);
-        }
-        .tab-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 3px;
-            cursor: pointer;
-            padding: 4px 12px;
-            border-radius: 12px;
-            transition: all 0.2s;
-        }
-        .tab-item svg {
-            width: 24px;
-            height: 24px;
-            fill: var(--text-secondary);
-            transition: fill 0.2s;
-        }
-        .tab-item span {
-            font-size: 10px;
-            color: var(--text-secondary);
-            font-weight: 500;
-            transition: color 0.2s;
-        }
-        .tab-item.active svg { fill: var(--green); }
-        .tab-item.active span { color: var(--green); }
+.stat-divider {
+  width: 1px;
+  height: 40px;
+  background: var(--white-50);
+  flex-shrink: 0;
+}
 
-        /* ── Pulse animation ── */
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.06); opacity: 0.85; }
-        }
-        .playing .tempo-ring-wrap {
-            animation: pulse 1s ease-in-out infinite;
-        }
+/* Parameter Menus */
+.params-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-top: 20px;
+}
 
-        /* ── Beat flash ── */
-        @keyframes beatFlash {
-            0% { opacity: 0; }
-            20% { opacity: 1; }
-            100% { opacity: 0; }
-        }
-        .beat-indicator {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: var(--green);
-            margin: 0 auto 12px;
-            opacity: 0;
-        }
-        .beat-indicator.flash {
-            animation: beatFlash 0.3s ease-out;
-        }
+.param-menu {
+  position: relative;
+  cursor: pointer;
+}
 
-        /* ── History peek ── */
-        .history-card {
-            border-radius: var(--radius-md);
-            padding: 16px;
-            margin-bottom: 16px;
-        }
-        .history-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-        }
-        .history-header h3 {
-            font-size: 15px;
-            font-weight: 600;
-        }
-        .history-header a {
-            font-size: 13px;
-            color: var(--green);
-            text-decoration: none;
-            font-weight: 500;
-        }
-        .history-bars {
-            display: flex;
-            align-items: flex-end;
-            gap: 6px;
-            height: 48px;
-        }
-        .h-bar {
-            flex: 1;
-            border-radius: 4px 4px 0 0;
-            background: linear-gradient(to top, rgba(52, 199, 89, 0.3), rgba(52, 199, 89, 0.6));
-            min-height: 6px;
-            transition: height 0.5s ease;
-        }
-        .history-labels {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 6px;
-        }
-        .history-labels span {
-            font-size: 9px;
-            color: var(--text-secondary);
-        }
-    </style>
+.param-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--white-75);
+  border-radius: 26px;
+  padding: 16px 12px;
+  width: 100%;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: transform 0.15s;
+  position: relative;
+}
+.param-btn:active { transform: scale(0.97); }
+
+.param-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--green);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.param-icon svg { display: block; }
+
+.param-text {
+  flex: 1;
+  min-width: 0;
+  padding-right: 20px;
+}
+
+.param-label {
+  font-size: 13px;
+  color: rgba(0,0,0,0.5);
+  line-height: 1.2;
+}
+
+.param-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: black;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.param-arrow {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* Dropdown */
+.dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+  z-index: 100;
+  overflow: hidden;
+  display: none;
+  animation: dropdownIn 0.15s ease-out;
+}
+
+@keyframes dropdownIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.dropdown.open { display: block; }
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  font-size: 15px;
+  color: #333;
+  cursor: pointer;
+  transition: background 0.1s;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+}
+.dropdown-item:hover { background: #f0f0f0; }
+.dropdown-item.active { color: var(--green); font-weight: 600; }
+
+/* Play Button */
+.play-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 20px;
+  gap: 8px;
+}
+
+.play-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: var(--green);
+  color: white;
+  border: none;
+  border-radius: 28px;
+  padding: 20px 40px;
+  min-width: 160px;
+  font-size: 24px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  transition: transform 0.15s, background 0.15s;
+}
+.play-btn:hover { background: var(--green-dark); }
+.play-btn:active { transform: scale(0.92); }
+.play-btn svg { display: block; }
+
+.waiting-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: white;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.waiting-text.visible { opacity: 1; }
+
+/* Info Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 200;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal-overlay.open { display: flex; }
+
+.modal {
+  background: white;
+  border-radius: 20px;
+  max-width: 440px;
+  width: 100%;
+  max-height: 85dvh;
+  overflow-y: auto;
+  color: #333;
+  animation: modalIn 0.2s ease-out;
+}
+
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px 12px;
+  border-bottom: 1px solid #eee;
+  position: sticky;
+  top: 0;
+  background: white;
+  border-radius: 20px 20px 0 0;
+}
+
+.modal-header h2 {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.modal-close {
+  background: #f0f0f0;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 18px;
+  color: #666;
+  transition: background 0.15s;
+}
+.modal-close:hover { background: #e0e0e0; }
+
+.modal-body {
+  padding: 20px 24px 28px;
+}
+
+.modal-body p {
+  font-size: 15px;
+  line-height: 1.5;
+  margin-bottom: 16px;
+  color: #555;
+}
+
+.modal-body h3 {
+  font-size: 17px;
+  font-weight: 700;
+  margin: 20px 0 12px;
+  color: #222;
+}
+
+.tip-item {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.tip-num {
+  font-weight: 700;
+  color: var(--green);
+  flex-shrink: 0;
+}
+
+.tip-content h4 {
+  font-weight: 700;
+  font-size: 15px;
+  margin-bottom: 4px;
+}
+
+.tip-content p {
+  margin-bottom: 0;
+}
+
+/* Custom Slider Modal */
+.slider-modal {
+  background: rgba(245,245,245,0.97);
+  border-radius: 25px;
+  padding: 30px 25px;
+  max-width: 380px;
+  width: 100%;
+  text-align: center;
+  animation: modalIn 0.2s ease-out;
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+}
+
+.slider-modal h3 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #222;
+  margin-bottom: 20px;
+}
+
+.slider-modal input[type="range"] {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: #ddd;
+  outline: none;
+  margin: 8px 0 24px;
+}
+
+.slider-modal input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--green);
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+.slider-buttons {
+  display: flex;
+  gap: 20px;
+}
+
+.slider-buttons button {
+  flex: 1;
+  padding: 12px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+.slider-buttons button:active { transform: scale(0.96); }
+
+.btn-cancel {
+  background: #e0e0e0;
+  border: 1px solid #ccc;
+  color: #666;
+}
+
+.btn-save {
+  background: var(--green);
+  border: none;
+  color: white;
+}
+
+/* Overlay close */
+.dropdown-backdrop {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: 50;
+  display: none;
+}
+.dropdown-backdrop.open { display: block; }
+
+/* Responsive */
+@media (max-height: 700px) {
+  .figure-container img { height: 180px; }
+}
+
+@media (max-width: 360px) {
+  .params-grid { gap: 12px; }
+  .param-btn { padding: 12px 10px; }
+  .param-value { font-size: 14px; }
+  .stat-value { font-size: 16px; }
+}
+</style>
 </head>
 <body>
-    <div class="bg"></div>
 
-    <svg style="position:absolute;width:0;height:0;">
-        <defs>
-            <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#34c759"/>
-                <stop offset="100%" stop-color="#30d158"/>
-            </linearGradient>
-        </defs>
-    </svg>
+<div class="app-bg"></div>
+<div class="dropdown-backdrop" id="dropdownBackdrop"></div>
 
-    <div class="app" id="app">
-        <!-- Status Bar -->
-        <div class="status-bar">
-            <span class="time" id="clock">9:41</span>
-            <div class="icons">
-                <svg viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
-                <svg viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
-            </div>
+<div class="app-container">
+  <!-- Header -->
+  <div class="header">
+    <h1>GOLF PRO TEMPO</h1>
+    <button class="info-btn" id="infoBtn" aria-label="Info">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M10.8949 9.8193H13.0769V18.5463H10.8949V9.8193ZM11.9859 4.6653C11.1492 4.6653 10.4683 5.34615 10.4683 6.18288C10.4683 7.01961 11.1492 7.70046 11.9859 7.70046C12.8226 7.70046 13.5035 7.01961 13.5035 6.18288C13.5035 5.34615 12.8226 4.6653 11.9859 4.6653ZM24 12C24 18.6165 18.6165 24 12 24C5.3835 24 0 18.6165 0 12C0 5.3835 5.3835 0 12 0C18.6165 0 24 5.3835 24 12ZM21.818 12C21.818 6.5859 17.414 2.1819 11.9999 2.1819C6.58578 2.1819 2.18178 6.5871 2.18178 12.0009C2.18178 17.4147 6.58578 21.819 11.9999 21.819C17.414 21.819 21.818 17.4138 21.818 12.0009V12Z" fill="white" fill-opacity="0.75"/></svg>
+    </button>
+  </div>
+
+  <!-- Figure -->
+  <div class="figure-container">
+    <img id="golferFigure" src="images/figure.long.png" alt="Golfer">
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-bar">
+    <div class="stat-item">
+      <div class="stat-value" id="statBack">1.20s</div>
+      <div class="stat-label">Back</div>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-item">
+      <div class="stat-value" id="statDown">0.40s</div>
+      <div class="stat-label">Down</div>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-item">
+      <div class="stat-value" id="statRatio">3:1</div>
+      <div class="stat-label">Ratio</div>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-item">
+      <div class="stat-value" id="statTempo">1.60s</div>
+      <div class="stat-label">Tempo</div>
+    </div>
+  </div>
+
+  <!-- Parameter Menus -->
+  <div class="params-grid">
+    <!-- Game -->
+    <div class="param-menu" id="menuGame">
+      <button class="param-btn" data-menu="game">
+        <div class="param-icon">
+          <svg width="19" height="22" viewBox="0 0 19 22" fill="none"><path d="M4.52181 5.84473L0.5 9.74127L0.548456 10.066C0.596911 10.3443 0.790733 11.6431 1.71139 12.1534C1.90521 12.2462 2.14749 12.339 2.48668 12.339C2.6805 12.339 2.92278 12.2926 3.16505 12.1998C3.84343 11.9215 3.9888 11.4576 3.9888 11.1793C4.03725 10.5762 3.45579 9.9732 2.77741 9.50933L5.2971 7.0508C4.90945 6.77248 4.66718 6.35499 4.52181 5.84473Z" fill="white"/><path d="M7.6231 6.7261C8.5865 6.7261 9.3675 5.97844 9.3675 5.05615C9.3675 4.13387 8.5865 3.38621 7.6231 3.38621C6.65969 3.38621 5.8787 4.13387 5.8787 5.05615C5.8787 5.97844 6.65969 6.7261 7.6231 6.7261Z" fill="white"/><path d="M14.8428 10.0197L12.5654 7.05087C13.1468 6.35506 13.486 5.65925 13.6314 4.82428C13.9706 2.36575 11.887 0.371099 11.8385 0.278324C11.4024 -0.0927746 10.7725 -0.0927746 10.3364 0.278324C10.3364 0.278324 10.3364 0.278324 10.3364 0.324711L10.288 0.278324L8.3982 2.04104C8.93121 2.1802 9.36731 2.41214 9.75495 2.73685L10.5302 1.99465C10.9179 2.45853 11.6447 3.47905 11.4994 4.54596C11.354 5.4737 10.6272 6.26229 9.22194 7.00448C9.12503 7.05087 9.07657 7.09726 9.02812 7.14365L8.3982 7.51475L8.34974 7.56113C8.01055 7.88584 8.01055 8.44249 8.30129 8.81359C8.30129 8.81359 10.9179 11.6432 11.4509 12.9421C12.9046 16.2819 7.47754 19.8074 7.23526 19.9002C6.70225 20.1321 6.45998 20.7351 6.70225 21.2454C6.89608 21.6165 7.23526 21.8484 7.67136 21.8484C7.81673 21.8484 7.9621 21.802 8.10746 21.7557C8.20437 21.7093 10.1426 20.8743 11.7416 19.2971C13.7768 17.2561 14.4067 14.9367 13.5829 12.4782L13.9706 12.2926C14.9397 13.8234 16.4418 16.7922 16.1511 20.7815C16.1026 21.3382 16.5387 21.802 17.1202 21.8484C17.7017 21.8948 18.1862 21.4773 18.2347 20.9207C18.6708 14.9367 15.6665 10.9938 14.8428 10.0197Z" fill="white"/></svg>
         </div>
-
-        <!-- Header -->
-        <div class="header">
-            <h1>Tempo</h1>
-            <div class="header-icon glass">
-                <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6A3.6 3.6 0 1 1 12 8.4a3.6 3.6 0 0 1 0 7.2z"/></svg>
-            </div>
+        <div class="param-text">
+          <div class="param-label">Game</div>
+          <div class="param-value" id="gameValue">Long</div>
         </div>
-
-        <!-- Tempo Ring -->
-        <div class="tempo-card glass" id="tempoCard">
-            <div class="beat-indicator" id="beatDot"></div>
-            <div class="tempo-ring-wrap">
-                <svg viewBox="0 0 180 180">
-                    <circle class="ring-bg" cx="90" cy="90" r="80"/>
-                    <circle class="ring-progress" id="ringProgress" cx="90" cy="90" r="80"/>
-                </svg>
-                <div class="ring-center">
-                    <span class="ring-bpm" id="bpmDisplay">72</span>
-                    <span class="ring-label">BPM</span>
-                </div>
-            </div>
-            <div class="tempo-ratio">
-                <div class="ratio-item">
-                    <div class="ratio-value" id="backswingVal">27</div>
-                    <div class="ratio-label">Backswing</div>
-                </div>
-                <div class="ratio-divider"></div>
-                <div class="ratio-item">
-                    <div class="ratio-value" id="downswingVal">9</div>
-                    <div class="ratio-label">Downswing</div>
-                </div>
-                <div class="ratio-divider"></div>
-                <div class="ratio-item">
-                    <div class="ratio-value" id="ratioVal">3 : 1</div>
-                    <div class="ratio-label">Ratio</div>
-                </div>
-            </div>
+        <div class="param-arrow">
+          <svg width="12" height="6" viewBox="0 0 12 6" fill="none"><path d="M0.630146 0C0.577898 0 0.530874 0.0333953 0.509974 0.086271C0.489075 0.139147 0.502137 0.197588 0.538711 0.236549L5.90987 5.95826C5.936 5.98609 5.96996 6 6.00131 6C6.03266 6 6.06923 5.98609 6.09274 5.95826L11.4613 0.239332C11.4979 0.203154 11.5109 0.14193 11.49 0.086271C11.4691 0.0333953 11.4221 0 11.3699 0H0.630146Z" fill="black" fill-opacity="0.5"/></svg>
         </div>
-
-        <!-- Swing Type -->
-        <div class="swing-selector glass">
-            <button class="swing-btn active" data-type="driver">Driver</button>
-            <button class="swing-btn" data-type="iron">Iron</button>
-            <button class="swing-btn" data-type="wedge">Wedge</button>
-            <button class="swing-btn" data-type="putt">Putt</button>
-        </div>
-
-        <!-- Presets -->
-        <div class="presets-label">Speed</div>
-        <div class="presets-grid">
-            <div class="preset-card glass" data-bpm="60" data-back="30" data-down="10">
-                <div class="preset-beats">30/10</div>
-                <div class="preset-name">Smooth</div>
-            </div>
-            <div class="preset-card glass active" data-bpm="72" data-back="27" data-down="9">
-                <div class="preset-beats">27/9</div>
-                <div class="preset-name">Classic</div>
-            </div>
-            <div class="preset-card glass" data-bpm="84" data-back="24" data-down="8">
-                <div class="preset-beats">24/8</div>
-                <div class="preset-name">Tour</div>
-            </div>
-            <div class="preset-card glass" data-bpm="100" data-back="21" data-down="7">
-                <div class="preset-beats">21/7</div>
-                <div class="preset-name">Pro</div>
-            </div>
-        </div>
-
-        <!-- Settings -->
-        <div class="settings-row">
-            <div class="setting-card glass">
-                <div class="setting-top">
-                    <div class="setting-icon green">
-                        <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 8.5v7a4.47 4.47 0 0 0 2.5-3.5zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
-                    </div>
-                    <div class="toggle on" id="soundToggle"></div>
-                </div>
-                <div class="setting-value">Sound</div>
-                <div class="setting-label">Audio cue</div>
-            </div>
-            <div class="setting-card glass">
-                <div class="setting-top">
-                    <div class="setting-icon blue">
-                        <svg viewBox="0 0 24 24"><path d="M0 15.998V20h4.004l11.83-11.83L11.83 4.17 0 15.998zM19.74 7.34a1.065 1.065 0 0 0 0-1.51l-2.58-2.58a1.065 1.065 0 0 0-1.51 0l-1.97 1.97 4.003 4.003 2.057-1.883z"/></svg>
-                    </div>
-                </div>
-                <div class="setting-value" id="loopVal">5s</div>
-                <div class="setting-label">Loop delay</div>
-            </div>
-            <div class="setting-card glass">
-                <div class="setting-top">
-                    <div class="setting-icon orange">
-                        <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg>
-                    </div>
-                </div>
-                <div class="setting-value" id="repsVal">10</div>
-                <div class="setting-label">Reps</div>
-            </div>
-        </div>
-
-        <!-- History -->
-        <div class="history-card glass">
-            <div class="history-header">
-                <h3>This Week</h3>
-                <a href="#">See All</a>
-            </div>
-            <div class="history-bars">
-                <div class="h-bar" style="height:40%"></div>
-                <div class="h-bar" style="height:65%"></div>
-                <div class="h-bar" style="height:50%"></div>
-                <div class="h-bar" style="height:85%"></div>
-                <div class="h-bar" style="height:70%"></div>
-                <div class="h-bar" style="height:30%"></div>
-                <div class="h-bar" style="height:90%"></div>
-            </div>
-            <div class="history-labels">
-                <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
-            </div>
-        </div>
-
-        <!-- Start Button -->
-        <div class="start-btn-wrap">
-            <button class="start-btn" id="startBtn">Start Practice</button>
-        </div>
+      </button>
+      <div class="dropdown" id="dropdownGame"></div>
     </div>
 
-    <!-- Tab Bar -->
-    <div class="tab-bar">
-        <div class="tab-item active">
-            <svg viewBox="0 0 24 24"><path d="M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z"/></svg>
-            <span>Tempo</span>
+    <!-- Tempo -->
+    <div class="param-menu" id="menuTempo">
+      <button class="param-btn" data-menu="tempo">
+        <div class="param-icon">
+          <svg width="24" height="19" viewBox="0 0 24 19" fill="none"><path d="M10.6736 3.42888C10.8388 3.06411 11.0307 2.73126 11.2495 2.42576L2.45014 6.88964C2.15102 7.05834 2.01262 7.44591 2.17781 7.75596C2.28495 7.97938 2.50371 8.12073 2.75372 8.12073C2.83407 8.12073 2.94569 8.09338 3.02604 8.06602L10.3164 4.31801C10.428 4.01251 10.5352 3.70702 10.6736 3.42888Z" fill="white"/><path d="M23.6249 4.45936C22.4239 0.971244 18.6515 -0.843487 15.2362 0.383052C13.1603 1.13539 11.6826 2.86805 11.1111 4.87428C11.0575 4.87428 11.004 4.90164 10.9727 4.929L6.32972 7.3C6.0306 7.46871 5.89221 7.85628 6.05739 8.16633C6.16454 8.38975 6.38329 8.5311 6.6333 8.5311C6.71366 8.5311 6.82527 8.50374 6.90563 8.47639L10.8968 6.43823C10.87 7.2772 10.9772 8.11162 11.2808 8.95059C11.3611 9.17401 11.4459 9.39743 11.5531 9.62085L0.726878 15.1471C0.427762 15.3158 0.289365 15.7034 0.454548 16.0134C0.561694 16.2369 0.780451 16.3782 1.03046 16.3782C1.11082 16.3782 1.22243 16.3509 1.30279 16.3235L12.1781 10.7699C12.3969 11.048 12.6156 11.3262 12.8612 11.5496L8.90122 13.5877C8.60211 13.7564 8.46371 14.144 8.62889 14.4541C8.73604 14.6775 8.9548 14.8188 9.2048 14.8188C9.28516 14.8188 9.39677 14.7915 9.47713 14.7641L13.9862 12.4478C15.6246 13.4783 17.7006 13.7883 19.6426 13.0634C23.049 11.773 24.8258 7.94747 23.6249 4.45936Z" fill="white"/></svg>
         </div>
-        <div class="tab-item">
-            <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
-            <span>Stats</span>
+        <div class="param-text">
+          <div class="param-label">Tempo</div>
+          <div class="param-value" id="tempoValue">Level 1</div>
         </div>
-        <div class="tab-item">
-            <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-            <span>Profile</span>
+        <div class="param-arrow">
+          <svg width="12" height="6" viewBox="0 0 12 6" fill="none"><path d="M0.630146 0C0.577898 0 0.530874 0.0333953 0.509974 0.086271C0.489075 0.139147 0.502137 0.197588 0.538711 0.236549L5.90987 5.95826C5.936 5.98609 5.96996 6 6.00131 6C6.03266 6 6.06923 5.98609 6.09274 5.95826L11.4613 0.239332C11.4979 0.203154 11.5109 0.14193 11.49 0.086271C11.4691 0.0333953 11.4221 0 11.3699 0H0.630146Z" fill="black" fill-opacity="0.5"/></svg>
         </div>
+      </button>
+      <div class="dropdown" id="dropdownTempo"></div>
     </div>
 
-    <script>
-        // Clock
-        function updateClock() {
-            const now = new Date();
-            document.getElementById('clock').textContent =
-                now.getHours() + ':' + String(now.getMinutes()).padStart(2, '0');
-        }
-        updateClock();
-        setInterval(updateClock, 10000);
+    <!-- Tone -->
+    <div class="param-menu" id="menuTone">
+      <button class="param-btn" data-menu="tone">
+        <div class="param-icon">
+          <svg width="14" height="19" viewBox="0 0 14 19" fill="none"><path d="M12.8981 1.94853C11.4809 0.916245 9.81594 0.249179 8.05937 0.00989746C7.68343 -0.0356974 7.30551 0.0776513 7.02209 0.320751C6.73887 0.563851 6.57744 0.913474 6.5792 1.27995V12.355C5.64166 11.5253 4.34582 11.188 3.10434 11.4508C1.81973 11.7224 0.759278 12.5953 0.276102 13.7785C-0.207089 14.9618 -0.0494015 16.3 0.696747 17.3477C1.44265 18.3953 2.67906 19.0148 3.99384 18.9997C5.05756 18.9529 6.0605 18.5063 6.78904 17.7548C7.51758 17.0034 7.91421 16.0067 7.89459 14.9767V2.56974C9.13517 2.77023 10.3079 3.25513 11.3153 3.98362C11.5663 4.16514 11.8764 4.25314 12.1889 4.23098C12.5014 4.20904 12.7952 4.07864 13.0164 3.86388L13.0183 3.86196C13.2879 3.60352 13.4293 3.24535 13.4064 2.87892C13.3833 2.51246 13.1981 2.17331 12.8981 1.94853Z" fill="white"/></svg>
+        </div>
+        <div class="param-text">
+          <div class="param-label">Tone</div>
+          <div class="param-value" id="toneValue">Piano</div>
+        </div>
+        <div class="param-arrow">
+          <svg width="12" height="6" viewBox="0 0 12 6" fill="none"><path d="M0.630146 0C0.577898 0 0.530874 0.0333953 0.509974 0.086271C0.489075 0.139147 0.502137 0.197588 0.538711 0.236549L5.90987 5.95826C5.936 5.98609 5.96996 6 6.00131 6C6.03266 6 6.06923 5.98609 6.09274 5.95826L11.4613 0.239332C11.4979 0.203154 11.5109 0.14193 11.49 0.086271C11.4691 0.0333953 11.4221 0 11.3699 0H0.630146Z" fill="black" fill-opacity="0.5"/></svg>
+        </div>
+      </button>
+      <div class="dropdown" id="dropdownTone"></div>
+    </div>
 
-        // Swing type selector
-        document.querySelectorAll('.swing-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.swing-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                const type = btn.dataset.type;
-                if (type === 'putt') {
-                    document.getElementById('ratioVal').textContent = '2 : 1';
-                } else {
-                    const active = document.querySelector('.preset-card.active');
-                    if (active) {
-                        const b = parseInt(active.dataset.back);
-                        const d = parseInt(active.dataset.down);
-                        document.getElementById('ratioVal').textContent = Math.round(b / d) + ' : 1';
-                    }
-                }
-            });
-        });
+    <!-- Interval -->
+    <div class="param-menu" id="menuInterval">
+      <button class="param-btn" data-menu="interval">
+        <div class="param-icon">
+          <svg width="17" height="16" viewBox="0 0 17 16" fill="none"><path d="M8.25119 1.07306e-05C6.5588 -0.00267818 4.90663 0.500043 3.51935 1.43981C2.13207 2.37957 1.07703 3.71077 0.49769 5.25236C-0.0816478 6.79395 -0.157159 8.47113 0.281426 10.0558C0.72001 11.6405 1.6514 13.0557 2.94894 14.1091L1.86869 14.2713C1.77131 14.286 1.67787 14.3191 1.5937 14.3689C1.50954 14.4186 1.4363 14.4839 1.37817 14.561C1.32004 14.6382 1.27815 14.7257 1.2549 14.8185C1.23165 14.9114 1.2275 15.0078 1.24267 15.1022C1.25784 15.1966 1.29204 15.2872 1.34332 15.3688C1.39461 15.4504 1.46196 15.5214 1.54155 15.5777C1.62114 15.6341 1.7114 15.6747 1.80717 15.6972C1.90295 15.7198 2.00236 15.7238 2.09974 15.7091L5.06519 15.264C5.16258 15.2495 5.25606 15.2164 5.34029 15.1669C5.42452 15.1173 5.49785 15.0521 5.55609 14.975C5.61433 14.898 5.65634 14.8106 5.67972 14.7178C5.70309 14.625 5.70738 14.5286 5.69234 14.4342L5.23323 11.5593C5.20279 11.3686 5.09547 11.1975 4.93488 11.0835C4.77429 10.9696 4.57358 10.9221 4.37691 10.9516C4.18023 10.9812 4.00371 11.0852 3.88617 11.2409C3.76863 11.3966 3.71969 11.5912 3.75013 11.7818L3.94893 13.0284C2.7316 12.0434 1.91154 10.6739 1.63301 9.16064C1.35447 7.64739 1.63531 6.08739 2.42612 4.75507C3.21693 3.42276 4.46704 2.40348 5.95653 1.87655C7.44603 1.34962 9.07949 1.3488 10.5695 1.87423C12.0596 2.39966 13.3108 3.41769 14.103 4.74921C14.8953 6.08074 15.1778 7.64046 14.9008 9.15398C14.6239 10.6675 13.8053 12.0379 12.5891 13.024C11.3728 14.0102 9.83676 14.5489 8.25119 14.5455C8.05224 14.5455 7.86143 14.6221 7.72074 14.7585C7.58005 14.8949 7.50102 15.0798 7.50102 15.2727C7.50102 15.4656 7.58005 15.6506 7.72074 15.787C7.86143 15.9234 8.05224 16 8.25119 16C10.4397 16 12.5387 15.1571 14.0862 13.6569C15.6337 12.1566 16.5031 10.1217 16.5031 8C16.5031 5.87827 15.6337 3.84344 14.0862 2.34315C12.5387 0.842865 10.4397 1.07306e-05 8.25119 1.07306e-05Z" fill="white"/><path d="M8.25119 2.9091C8.05224 2.9091 7.86143 2.98572 7.72074 3.12211C7.58005 3.2585 7.50102 3.44349 7.50102 3.63637V8.00001C7.50106 8.19287 7.58012 8.37783 7.72082 8.51419L9.97135 10.696C10.1128 10.8285 10.3023 10.9018 10.499 10.9001C10.6957 10.8985 10.8839 10.822 11.023 10.6871C11.1621 10.5523 11.2409 10.3699 11.2427 10.1792C11.2444 9.98852 11.1688 9.80481 11.0321 9.66764L9.00137 7.69892V3.63637C9.00137 3.44349 8.92234 3.2585 8.78165 3.12211C8.64096 2.98572 8.45015 2.9091 8.25119 2.9091Z" fill="white"/></svg>
+        </div>
+        <div class="param-text">
+          <div class="param-label">Interval</div>
+          <div class="param-value" id="intervalValue">0s</div>
+        </div>
+        <div class="param-arrow">
+          <svg width="12" height="6" viewBox="0 0 12 6" fill="none"><path d="M0.630146 0C0.577898 0 0.530874 0.0333953 0.509974 0.086271C0.489075 0.139147 0.502137 0.197588 0.538711 0.236549L5.90987 5.95826C5.936 5.98609 5.96996 6 6.00131 6C6.03266 6 6.06923 5.98609 6.09274 5.95826L11.4613 0.239332C11.4979 0.203154 11.5109 0.14193 11.49 0.086271C11.4691 0.0333953 11.4221 0 11.3699 0H0.630146Z" fill="black" fill-opacity="0.5"/></svg>
+        </div>
+      </button>
+      <div class="dropdown" id="dropdownInterval"></div>
+    </div>
+  </div>
 
-        // Preset selector
-        document.querySelectorAll('.preset-card').forEach(card => {
-            card.addEventListener('click', () => {
-                document.querySelectorAll('.preset-card').forEach(c => c.classList.remove('active'));
-                card.classList.add('active');
-                const bpm = card.dataset.bpm;
-                const back = card.dataset.back;
-                const down = card.dataset.down;
-                document.getElementById('bpmDisplay').textContent = bpm;
-                document.getElementById('backswingVal').textContent = back;
-                document.getElementById('downswingVal').textContent = down;
-                document.getElementById('ratioVal').textContent = Math.round(back / down) + ' : 1';
-                // Update ring
-                const pct = parseInt(bpm) / 120;
-                const offset = 502 - (502 * pct);
-                document.getElementById('ringProgress').style.strokeDashoffset = offset;
-            });
-        });
+  <!-- Play Button -->
+  <div class="play-section">
+    <button class="play-btn" id="playBtn">
+      <svg id="playIcon" width="17" height="20" viewBox="0 0 17 20" fill="none"><path d="M15.8993 11.9661L3.7626 19.6167C3.01439 20.0891 2.05935 20.1273 1.27518 19.7175C0.489215 19.3076 0 18.5139 0 17.6524V2.3476C0 1.48614 0.489215 0.6924 1.27518 0.282546C2.05935 -0.127343 3.01439 -0.0891315 3.7626 0.38328L15.8993 8.03391C16.5863 8.46811 17 9.20798 17 9.99999C17 10.792 16.5863 11.5319 15.8993 11.9661Z" fill="white"/></svg>
+      <svg id="stopIcon" width="20" height="21" viewBox="0 0 20 21" fill="none" style="display:none"><path d="M2.30986 20.0563H17.6901C18.9859 20.0563 20 18.9859 20 17.7465V2.30986C20 1.01408 18.9296 0 17.6901 0H2.30986C1.01408 0 0 1.07042 0 2.30986V17.6901C0 19.0423 1.01408 20.0563 2.30986 20.0563Z" fill="white"/></svg>
+      <span id="playLabel">Play</span>
+    </button>
+    <div class="waiting-text" id="waitingText">Waiting...</div>
+  </div>
+</div>
 
-        // Sound toggle
-        document.getElementById('soundToggle').addEventListener('click', function () {
-            this.classList.toggle('on');
-        });
+<!-- Info Modal -->
+<div class="modal-overlay" id="infoModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>How to Use</h2>
+      <button class="modal-close" id="infoClose">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p>Golf Pro Tempo helps you perfect your golf swing rhythm with customizable audio cues.</p>
 
-        // Start / Stop
-        let playing = false;
-        let beatInterval = null;
-        const startBtn = document.getElementById('startBtn');
-        const tempoCard = document.getElementById('tempoCard');
-        const beatDot = document.getElementById('beatDot');
+      <h3>Main Features</h3>
 
-        startBtn.addEventListener('click', () => {
-            playing = !playing;
-            if (playing) {
-                startBtn.textContent = 'Stop';
-                startBtn.classList.add('playing');
-                tempoCard.classList.add('playing');
-                const bpm = parseInt(document.getElementById('bpmDisplay').textContent);
-                const ms = 60000 / bpm;
-                beatInterval = setInterval(() => {
-                    beatDot.classList.remove('flash');
-                    void beatDot.offsetWidth;
-                    beatDot.classList.add('flash');
-                }, ms);
-            } else {
-                startBtn.textContent = 'Start Practice';
-                startBtn.classList.remove('playing');
-                tempoCard.classList.remove('playing');
-                clearInterval(beatInterval);
-                beatDot.classList.remove('flash');
-            }
-        });
+      <div class="tip-item">
+        <span class="tip-num">1.</span>
+        <div class="tip-content">
+          <h4>Game Types</h4>
+          <p>Choose between Long (3:1), Short (2:1), or set your own Custom ratio to match your natural swing.</p>
+        </div>
+      </div>
 
-        // Tab bar
-        document.querySelectorAll('.tab-item').forEach(tab => {
-            tab.addEventListener('click', () => {
-                document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-            });
-        });
-    </script>
+      <div class="tip-item">
+        <span class="tip-num">2.</span>
+        <div class="tip-content">
+          <h4>Tempo Control</h4>
+          <p>Select from 8 preset speeds or create a Custom tempo to find your ideal rhythm.</p>
+        </div>
+      </div>
+
+      <div class="tip-item">
+        <span class="tip-num">3.</span>
+        <div class="tip-content">
+          <h4>Sound Options</h4>
+          <p>Choose from multiple sound types (Piano, Guitar, Drum, Beep, Voice, etc.) to find what works best for your training.</p>
+        </div>
+      </div>
+
+      <div class="tip-item">
+        <span class="tip-num">4.</span>
+        <div class="tip-content">
+          <h4>Loop Settings</h4>
+          <p>Set the pause between swing cycles. A 1-second base pause plus your selected interval value.</p>
+        </div>
+      </div>
+
+      <h3>Training Tips</h3>
+
+      <div class="tip-item">
+        <span class="tip-num">1.</span>
+        <div class="tip-content">
+          <h4>Listen &amp; Feel</h4>
+          <p>Focus on matching your movement to the audio cues until it becomes automatic.</p>
+        </div>
+      </div>
+
+      <div class="tip-item">
+        <span class="tip-num">2.</span>
+        <div class="tip-content">
+          <h4>Progressive Training</h4>
+          <p>Start with slower tempos and gradually increase speed as your muscle memory develops.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Custom Ratio Modal -->
+<div class="modal-overlay" id="ratioModal">
+  <div class="slider-modal">
+    <h3 id="ratioDisplay">Ratio: 3.0:1</h3>
+    <input type="range" id="ratioSlider" min="10" max="50" value="30" step="1">
+    <div class="slider-buttons">
+      <button class="btn-cancel" id="ratioCancelBtn">Cancel</button>
+      <button class="btn-save" id="ratioSaveBtn">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Custom Tempo Modal -->
+<div class="modal-overlay" id="tempoModal">
+  <div class="slider-modal">
+    <h3 id="tempoDisplay">Tempo: 1.47 sec</h3>
+    <input type="range" id="tempoSlider" min="50" max="300" value="147" step="1">
+    <div class="slider-buttons">
+      <button class="btn-cancel" id="tempoCancelBtn">Cancel</button>
+      <button class="btn-save" id="tempoSaveBtn">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===================== STATE =====================
+const state = {
+  selectedGame: 'Long',
+  selectedSpeed: 'Level 1',
+  selectedTone: 'Piano',
+  selectedLoopDelay: '0s',
+  customRatio: 3.0,
+  customTempo: 1.47,
+  backTime: '1.20s',
+  downTime: '0.40s',
+  ratio: '3:1',
+  tempo: '1.60s',
+  isPlaying: false,
+  isWaiting: false
+};
+
+const gameOptions = ['Long', 'Short', 'Custom'];
+const speedOptions = ['Level 1', 'Level 2', 'Level 3', 'Level 4', 'Level 5', 'Level 6', 'Level 7', 'Level 8', 'Custom'];
+const toneOptions = ['Piano', 'Guitar', 'Drum', 'Beep', '8-Bit', 'Dripper', 'Synthesizer', 'Voice'];
+const loopDelayOptions = ['0s', '3s', '5s', '10s'];
+
+// ===================== AUDIO ENGINE =====================
+class AudioEngine {
+  constructor() {
+    this.ctx = null;
+    this.buffers = {};
+    this.currentTone = 'Piano';
+    this.isPlaying = false;
+    this.isStopped = true;
+    this.timers = [];
+  }
+
+  async init() {
+    if (this.ctx) return;
+    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+    await this.loadTone(this.currentTone);
+  }
+
+  async loadTone(tone) {
+    const files = [tone + '1', tone + '2', tone + '3'];
+    const promises = files.map(async (name) => {
+      if (this.buffers[name]) return;
+      try {
+        const resp = await fetch('audio/' + name + '.mp3');
+        const arrayBuf = await resp.arrayBuffer();
+        this.buffers[name] = await this.ctx.decodeAudioData(arrayBuf);
+      } catch (e) {
+        console.warn('Failed to load ' + name + '.mp3:', e);
+      }
+    });
+    await Promise.all(promises);
+  }
+
+  playSound(name) {
+    var buf = this.buffers[name];
+    if (!buf || !this.ctx) return;
+    var source = this.ctx.createBufferSource();
+    source.buffer = buf;
+    source.connect(this.ctx.destination);
+    source.start(0);
+  }
+
+  clearTimers() {
+    this.timers.forEach(function(t) { clearTimeout(t); });
+    this.timers = [];
+  }
+
+  async startPlayback(backTime, downTime, loopDelay, tone) {
+    await this.init();
+    this.stop();
+
+    if (tone !== this.currentTone) {
+      this.currentTone = tone;
+      await this.loadTone(tone);
+    }
+
+    if (this.ctx.state === 'suspended') {
+      await this.ctx.resume();
+    }
+
+    this.isStopped = false;
+    this.isPlaying = true;
+    this.playBackswing(backTime, downTime, loopDelay, tone);
+  }
+
+  playBackswing(backTime, downTime, loopDelay, tone) {
+    if (this.isStopped) return;
+
+    this.playSound(tone + '1');
+    state.isWaiting = false;
+    updateWaiting();
+
+    var self = this;
+    var t = setTimeout(function() {
+      if (self.isStopped) return;
+      self.playDownswing(backTime, downTime, loopDelay, tone);
+    }, backTime * 1000);
+    this.timers.push(t);
+  }
+
+  playDownswing(backTime, downTime, loopDelay, tone) {
+    if (this.isStopped) return;
+
+    this.playSound(tone + '2');
+
+    var self = this;
+    var t = setTimeout(function() {
+      if (self.isStopped) return;
+      self.playImpact(backTime, downTime, loopDelay, tone);
+    }, downTime * 1000);
+    this.timers.push(t);
+  }
+
+  playImpact(backTime, downTime, loopDelay, tone) {
+    if (this.isStopped) return;
+
+    this.playSound(tone + '3');
+
+    var basePause = 1.0;
+    var totalDelay = basePause + loopDelay;
+
+    state.isWaiting = loopDelay > 0;
+    updateWaiting();
+
+    var self = this;
+    var t = setTimeout(function() {
+      if (self.isStopped) return;
+      self.playBackswing(backTime, downTime, loopDelay, tone);
+    }, totalDelay * 1000);
+    this.timers.push(t);
+  }
+
+  stop() {
+    this.isStopped = true;
+    this.isPlaying = false;
+    this.clearTimers();
+    state.isWaiting = false;
+    updateWaiting();
+  }
+}
+
+var audio = new AudioEngine();
+
+// ===================== DOM REFS =====================
+var $statBack = document.getElementById('statBack');
+var $statDown = document.getElementById('statDown');
+var $statRatio = document.getElementById('statRatio');
+var $statTempo = document.getElementById('statTempo');
+var $golferFigure = document.getElementById('golferFigure');
+var $gameValue = document.getElementById('gameValue');
+var $tempoValue = document.getElementById('tempoValue');
+var $toneValue = document.getElementById('toneValue');
+var $intervalValue = document.getElementById('intervalValue');
+var $playBtn = document.getElementById('playBtn');
+var $playIcon = document.getElementById('playIcon');
+var $stopIcon = document.getElementById('stopIcon');
+var $playLabel = document.getElementById('playLabel');
+var $waitingText = document.getElementById('waitingText');
+var $dropdownBackdrop = document.getElementById('dropdownBackdrop');
+
+// ===================== UI UPDATE =====================
+function updateStats() {
+  $statBack.textContent = state.backTime;
+  $statDown.textContent = state.downTime;
+  $statRatio.textContent = state.ratio;
+  $statTempo.textContent = state.tempo;
+}
+
+function updateFigure() {
+  $golferFigure.src = state.selectedGame === 'Short' ? 'images/figure.short.png' : 'images/figure.long.png';
+}
+
+function updateMenuValues() {
+  $gameValue.textContent = state.selectedGame;
+  $tempoValue.textContent = state.selectedSpeed;
+  $toneValue.textContent = state.selectedTone;
+  $intervalValue.textContent = state.selectedLoopDelay;
+}
+
+function updatePlayButton() {
+  if (state.isPlaying) {
+    $playIcon.style.display = 'none';
+    $stopIcon.style.display = 'block';
+    $playLabel.textContent = 'Stop';
+  } else {
+    $playIcon.style.display = 'block';
+    $stopIcon.style.display = 'none';
+    $playLabel.textContent = 'Play';
+  }
+}
+
+function updateWaiting() {
+  $waitingText.classList.toggle('visible', state.isWaiting && state.isPlaying);
+}
+
+// ===================== TEMPO CALCULATIONS =====================
+function updateTimes() {
+  switch (state.selectedGame) {
+    case 'Long':
+      state.ratio = '3:1';
+      switch (state.selectedSpeed) {
+        case 'Level 1': state.backTime = '1.20s'; state.downTime = '0.40s'; state.tempo = '1.60s'; break;
+        case 'Level 2': state.backTime = '1.10s'; state.downTime = '0.37s'; state.tempo = '1.47s'; break;
+        case 'Level 3': state.backTime = '1.00s'; state.downTime = '0.33s'; state.tempo = '1.33s'; break;
+        case 'Level 4': state.backTime = '0.90s'; state.downTime = '0.30s'; state.tempo = '1.20s'; break;
+        case 'Level 5': state.backTime = '0.80s'; state.downTime = '0.27s'; state.tempo = '1.07s'; break;
+        case 'Level 6': state.backTime = '0.70s'; state.downTime = '0.23s'; state.tempo = '0.93s'; break;
+        case 'Level 7': state.backTime = '0.60s'; state.downTime = '0.20s'; state.tempo = '0.80s'; break;
+        case 'Level 8': state.backTime = '0.50s'; state.downTime = '0.17s'; state.tempo = '0.67s'; break;
+        case 'Custom': updateCustomSpeed(); return;
+      }
+      break;
+    case 'Short':
+      state.ratio = '2:1';
+      switch (state.selectedSpeed) {
+        case 'Level 1': state.backTime = '0.80s'; state.downTime = '0.40s'; state.tempo = '1.20s'; break;
+        case 'Level 2': state.backTime = '0.73s'; state.downTime = '0.37s'; state.tempo = '1.10s'; break;
+        case 'Level 3': state.backTime = '0.67s'; state.downTime = '0.33s'; state.tempo = '1.00s'; break;
+        case 'Level 4': state.backTime = '0.60s'; state.downTime = '0.30s'; state.tempo = '0.90s'; break;
+        case 'Level 5': state.backTime = '0.53s'; state.downTime = '0.27s'; state.tempo = '0.80s'; break;
+        case 'Level 6': state.backTime = '0.47s'; state.downTime = '0.23s'; state.tempo = '0.70s'; break;
+        case 'Level 7': state.backTime = '0.40s'; state.downTime = '0.20s'; state.tempo = '0.60s'; break;
+        case 'Level 8': state.backTime = '0.33s'; state.downTime = '0.17s'; state.tempo = '0.50s'; break;
+        case 'Custom': updateCustomSpeed(); return;
+      }
+      break;
+    case 'Custom':
+      if (state.selectedSpeed !== 'Custom') {
+        var tempoMap = { 'Level 1': 1.60, 'Level 2': 1.47, 'Level 3': 1.33, 'Level 4': 1.20, 'Level 5': 1.07, 'Level 6': 0.93, 'Level 7': 0.80, 'Level 8': 0.67 };
+        var tempoFromSpeed = tempoMap[state.selectedSpeed] || 1.60;
+        var downVal = tempoFromSpeed / (state.customRatio + 1);
+        var backVal = downVal * state.customRatio;
+        state.backTime = backVal.toFixed(2) + 's';
+        state.downTime = downVal.toFixed(2) + 's';
+        state.ratio = state.customRatio.toFixed(1) + ':1';
+        state.tempo = tempoFromSpeed.toFixed(2) + 's';
+      } else {
+        updateCustomGame();
+        return;
+      }
+      break;
+  }
+  updateStats();
+  updateFigure();
+}
+
+function updateCustomGame() {
+  var tempoVal = parseFloat(state.tempo) || state.customTempo;
+  var downVal = tempoVal / (state.customRatio + 1);
+  var backVal = downVal * state.customRatio;
+  state.backTime = backVal.toFixed(2) + 's';
+  state.downTime = downVal.toFixed(2) + 's';
+  state.ratio = state.customRatio.toFixed(1) + ':1';
+  state.tempo = tempoVal.toFixed(2) + 's';
+  state.selectedGame = 'Custom';
+  updateStats();
+  updateMenuValues();
+  updateFigure();
+}
+
+function updateCustomSpeed() {
+  var ratioVal = parseFloat(state.ratio) || state.customRatio;
+  var downVal = state.customTempo / (ratioVal + 1);
+  var backVal = downVal * ratioVal;
+  state.backTime = backVal.toFixed(2) + 's';
+  state.downTime = downVal.toFixed(2) + 's';
+  state.tempo = state.customTempo.toFixed(2) + 's';
+  state.selectedSpeed = 'Custom';
+  updateStats();
+  updateMenuValues();
+}
+
+function getBackTimeValue() { return parseFloat(state.backTime) || 1.1; }
+function getDownTimeValue() { return parseFloat(state.downTime) || 0.37; }
+function getLoopDelayValue() { return parseFloat(state.selectedLoopDelay) || 0; }
+
+// ===================== PLAYBACK =====================
+function togglePlayback() {
+  if (state.isPlaying) {
+    stopPlayback();
+  } else {
+    startPlayback();
+  }
+}
+
+async function startPlayback() {
+  var backTime = getBackTimeValue();
+  var downTime = getDownTimeValue();
+  var loopDelay = getLoopDelayValue();
+  state.isPlaying = true;
+  updatePlayButton();
+  await audio.startPlayback(backTime, downTime, loopDelay, state.selectedTone);
+}
+
+function stopPlayback() {
+  state.isPlaying = false;
+  audio.stop();
+  updatePlayButton();
+  updateWaiting();
+}
+
+function resetPlayback() {
+  if (state.isPlaying) {
+    stopPlayback();
+    startPlayback();
+  }
+}
+
+// ===================== DROPDOWNS =====================
+var openDropdownId = null;
+
+function closeAllDropdowns() {
+  document.querySelectorAll('.dropdown').forEach(function(d) { d.classList.remove('open'); });
+  $dropdownBackdrop.classList.remove('open');
+  openDropdownId = null;
+}
+
+function renderDropdown(id, options, currentValue, onSelect, customAction) {
+  var dd = document.getElementById(id);
+  dd.innerHTML = '';
+  options.forEach(function(option) {
+    var item = document.createElement('button');
+    item.className = 'dropdown-item' + (option === currentValue ? ' active' : '');
+    item.textContent = option;
+    if (option === currentValue) {
+      var check = document.createElement('span');
+      check.className = 'dropdown-check';
+      check.innerHTML = ' &#10003;';
+      check.style.color = 'var(--green)';
+      check.style.marginLeft = 'auto';
+      check.style.paddingLeft = '8px';
+      item.appendChild(check);
+    }
+    item.addEventListener('click', function(e) {
+      e.stopPropagation();
+      if (option === 'Custom' && customAction) {
+        closeAllDropdowns();
+        customAction();
+      } else {
+        onSelect(option);
+        closeAllDropdowns();
+      }
+    });
+    dd.appendChild(item);
+  });
+}
+
+function openDropdown(menuId, dropdownId, options, currentValue, onSelect, customAction) {
+  if (openDropdownId === dropdownId) {
+    closeAllDropdowns();
+    return;
+  }
+  closeAllDropdowns();
+  renderDropdown(dropdownId, options, currentValue, onSelect, customAction);
+  document.getElementById(dropdownId).classList.add('open');
+  $dropdownBackdrop.classList.add('open');
+  openDropdownId = dropdownId;
+}
+
+// Menu button click handlers
+document.querySelector('[data-menu="game"]').addEventListener('click', function() {
+  openDropdown('menuGame', 'dropdownGame', gameOptions, state.selectedGame, function(val) {
+    state.selectedGame = val;
+    updateTimes();
+    updateMenuValues();
+    resetPlayback();
+  }, function() {
+    openRatioModal();
+  });
+});
+
+document.querySelector('[data-menu="tempo"]').addEventListener('click', function() {
+  openDropdown('menuTempo', 'dropdownTempo', speedOptions, state.selectedSpeed, function(val) {
+    state.selectedSpeed = val;
+    updateTimes();
+    updateMenuValues();
+    resetPlayback();
+  }, function() {
+    openTempoModal();
+  });
+});
+
+document.querySelector('[data-menu="tone"]').addEventListener('click', function() {
+  openDropdown('menuTone', 'dropdownTone', toneOptions, state.selectedTone, function(val) {
+    state.selectedTone = val;
+    updateMenuValues();
+    audio.init().then(function() { audio.loadTone(val); });
+    resetPlayback();
+  });
+});
+
+document.querySelector('[data-menu="interval"]').addEventListener('click', function() {
+  openDropdown('menuInterval', 'dropdownInterval', loopDelayOptions, state.selectedLoopDelay, function(val) {
+    state.selectedLoopDelay = val;
+    updateMenuValues();
+    resetPlayback();
+  });
+});
+
+$dropdownBackdrop.addEventListener('click', closeAllDropdowns);
+
+// ===================== PLAY BUTTON =====================
+$playBtn.addEventListener('click', togglePlayback);
+
+// ===================== INFO MODAL =====================
+document.getElementById('infoBtn').addEventListener('click', function() {
+  document.getElementById('infoModal').classList.add('open');
+});
+
+document.getElementById('infoClose').addEventListener('click', function() {
+  document.getElementById('infoModal').classList.remove('open');
+});
+
+document.getElementById('infoModal').addEventListener('click', function(e) {
+  if (e.target === e.currentTarget) {
+    e.currentTarget.classList.remove('open');
+  }
+});
+
+// ===================== RATIO MODAL =====================
+function openRatioModal() {
+  var slider = document.getElementById('ratioSlider');
+  slider.value = Math.round(state.customRatio * 10);
+  updateRatioDisplay(state.customRatio);
+  document.getElementById('ratioModal').classList.add('open');
+}
+
+function updateRatioDisplay(val) {
+  document.getElementById('ratioDisplay').textContent = 'Ratio: ' + val.toFixed(1) + ':1';
+}
+
+document.getElementById('ratioSlider').addEventListener('input', function(e) {
+  updateRatioDisplay(e.target.value / 10);
+});
+
+document.getElementById('ratioCancelBtn').addEventListener('click', function() {
+  document.getElementById('ratioModal').classList.remove('open');
+});
+
+document.getElementById('ratioSaveBtn').addEventListener('click', function() {
+  state.customRatio = document.getElementById('ratioSlider').value / 10;
+  state.selectedGame = 'Custom';
+  updateCustomGame();
+  resetPlayback();
+  document.getElementById('ratioModal').classList.remove('open');
+});
+
+document.getElementById('ratioModal').addEventListener('click', function(e) {
+  if (e.target === e.currentTarget) {
+    e.currentTarget.classList.remove('open');
+  }
+});
+
+// ===================== TEMPO MODAL =====================
+function openTempoModal() {
+  var slider = document.getElementById('tempoSlider');
+  slider.value = Math.round(state.customTempo * 100);
+  updateTempoDisplay(state.customTempo);
+  document.getElementById('tempoModal').classList.add('open');
+}
+
+function updateTempoDisplay(val) {
+  document.getElementById('tempoDisplay').textContent = 'Tempo: ' + val.toFixed(2) + ' sec';
+}
+
+document.getElementById('tempoSlider').addEventListener('input', function(e) {
+  updateTempoDisplay(e.target.value / 100);
+});
+
+document.getElementById('tempoCancelBtn').addEventListener('click', function() {
+  document.getElementById('tempoModal').classList.remove('open');
+});
+
+document.getElementById('tempoSaveBtn').addEventListener('click', function() {
+  state.customTempo = document.getElementById('tempoSlider').value / 100;
+  state.selectedSpeed = 'Custom';
+  updateCustomSpeed();
+  resetPlayback();
+  document.getElementById('tempoModal').classList.remove('open');
+});
+
+document.getElementById('tempoModal').addEventListener('click', function(e) {
+  if (e.target === e.currentTarget) {
+    e.currentTarget.classList.remove('open');
+  }
+});
+
+// ===================== INIT =====================
+updateTimes();
+updateMenuValues();
+updatePlayButton();
+</script>
 </body>
 </html>
